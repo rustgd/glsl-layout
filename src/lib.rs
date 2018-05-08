@@ -2,16 +2,19 @@
 //!
 //! This crates provides data types to build structures ready to upload into UBO.
 //! Data layout will match one for uniform blocks declared with `layout(std140)`.
+//! See [https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159](specs) for alignment rules.
 //!
 
 /// Array storage.
 /// `foo: array![float; N]` is equivalent to glsl's `float foo[N];`.
 ///
 /// `array![float; N]` implements `From<[float; N]`.
+///
+/// # Examples
 /// 
 /// ```rust
-/// # #[macro_use] extern crate glsl_layout_std140;
-/// # use glsl_layout_std140::scalar::float;
+/// # #[macro_use] extern crate glsl_layout;
+/// # use glsl_layout::float;
 /// # fn main() {
 /// let x: array![float; 3] = [1.0f32, 2.0f32, 3.0f32].into();
 /// # }
@@ -20,17 +23,17 @@
 #[macro_export]
 macro_rules! array {
     ($type:ty; $size:tt) => {
-        $crate::array::Array<[$crate::array::Element<$type>; $size]>
+        $crate::Array<[$crate::Element<$type>; $size]>
     }
 }
 
 /// Define structure to use upload to UBO.
 ///
+/// # Examples
+///
 /// ```rust
-/// # #[macro_use] extern crate glsl_layout_std140;
-/// # use glsl_layout_std140::scalar::int;
-/// # use glsl_layout_std140::vec::dvec3;
-/// # use glsl_layout_std140::mat::mat4x4;
+/// # #[macro_use] extern crate glsl_layout;
+/// # use glsl_layout::{int, dvec3, mat4x4};
 /// # fn main() {
 /// uniform! { struct Foo {
 ///     x: int,
@@ -52,13 +55,18 @@ macro_rules! uniform {
     }
 }
 
-pub mod scalar;
-pub mod vec;
-pub mod array;
-pub mod mat;
+mod scalar;
+mod vec;
+mod array;
+mod mat;
 
 #[cfg(test)]
 mod tests;
 
 #[cfg(feature="cgmath")]
 mod cgmath;
+
+pub use scalar::*;
+pub use vec::*;
+pub use array::*;
+pub use mat::*;

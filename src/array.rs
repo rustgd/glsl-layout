@@ -3,6 +3,8 @@ pub(crate) trait ArrayFrom<A> {
     fn array_from(array: A) -> Self;
 }
 
+/// Aligning wrapper.
+/// Elements for array are aligned to 16 bytes (size of vec4) at least.
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
 pub struct Element<T>(T);
@@ -25,6 +27,8 @@ impl<T> AsMut<T> for Element<T> {
     }
 }
 
+/// Array of `Element`s.
+/// This type implements useful traits for converting from unwrapped types.
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
 pub struct Array<A>(A);
