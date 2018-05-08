@@ -1,10 +1,10 @@
 [package]
-name = "glsl-layout-std140"
+name = "glsl-layout"
 version = "0.1.0"
 authors = ["Zakarum <scareaangel@gmail.com>"]
 description = "Provides data types from glsl with matching alignment requirements."
 license = "MIT/Apache-2.0"
-repository = "https://github.com/omni-viral/glsl-layout-std140"
+repository = "https://github.com/omni-viral/glsl-layout"
 
 [features]
 bigger-arrays = []

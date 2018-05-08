@@ -1,5 +1,5 @@
 
-# GLSL-LAYOUT-STD140
+# GLSL-LAYOUT
 
 This crates provides data types to build structures ready to upload into UBO.
 Data layout will match one for uniform blocks declared with `layout(std140)`.
