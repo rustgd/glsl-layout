@@ -1,82 +1,93 @@
 
-use std::fmt::Debug;
-use align::{Aligned, Align, Align4, Align16, Align32, WithAlign};
-use scalar::{Scalar, double};
-use vec::GVec;
-
-pub trait ArrayFrom<T: Copy> {
-    fn from(values: T) -> Self;
+pub(crate) trait ArrayFrom<A> {
+    fn array_from(array: A) -> Self;
 }
 
-pub trait ArrayStorage: Sized {
-    type Storage: Copy + Debug;
+#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[repr(C, align(16))]
+pub struct Element<T>(T);
+
+impl<T> From<T> for Element<T> {
+    fn from(values: T) -> Self {
+        Element(values)
+    }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct GArray<T: ArrayStorage>(T::Storage);
+impl<T> AsRef<T> for Element<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
+}
+
+impl<T> AsMut<T> for Element<T> {
+    fn as_mut(&mut self) -> &mut T {
+        &mut self.0
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[repr(C, align(16))]
+pub struct Array<A>(A);
 
 macro_rules! impl_array {
     ($size:tt) => {
-        impl<T> Aligned for [T; $size]
+        impl<T, U> ArrayFrom<[T; $size]> for [U; $size]
         where
-            T: Aligned,
+            T: Into<U> + 'static,
+            U: 'static,
         {
-            const SIZE: usize = T::SIZE * $size;
-            type Align = T::Align;
-        }
+            fn array_from(mut values: [T; $size]) -> Self {
+                use std::{any::TypeId, mem::{forget, transmute}, ptr::{read, write}};
 
-        impl<T: Scalar> ArrayStorage for [T; $size] {
-            type Storage = [WithAlign<T, Align16>; $size];
-        }
-
-        impl<T> ArrayStorage for [GVec<[T; 2]>; $size] where T: Scalar<Align=Align4> {
-            type Storage = [WithAlign<[T; 2], Align16>; $size];
-        }
-        impl ArrayStorage for [GVec<[double; 2]>; $size] {
-            type Storage = [WithAlign<[double; 2], Align16>; $size];
-        }
-
-        impl<T> ArrayStorage for [GVec<[T; 3]>; $size] where T: Scalar<Align=Align4> {
-            type Storage = [WithAlign<[T; 3], Align16>; $size];
-        }
-        impl ArrayStorage for [GVec<[double; 3]>; $size] {
-            type Storage = [WithAlign<[double; 3], Align32>; $size];
-        }
-
-        impl<T> ArrayStorage for [GVec<[T; 4]>; $size] where T: Scalar<Align=Align4> {
-            type Storage = [WithAlign<[T; 4], Align16>; $size];
-        }
-        impl ArrayStorage for [GVec<[double; 4]>; $size] {
-            type Storage = [WithAlign<[double; 4], Align32>; $size];
-        }
-
-        impl<T, U, A> ArrayFrom<[T; $size]> for [WithAlign<U, A>; $size]
-        where
-            T: Copy,
-            A: Align,
-            U: From<T>
-        {
-            fn from(mut values: [T; $size]) -> Self {
-                use std::{mem::forget, ptr::{read, write}};
                 unsafe {
-                    let mut results: [WithAlign<U, A>; $size] = ::std::mem::uninitialized();
-                    for (res, val) in results.iter_mut().zip(&mut values[..]) {
-                        write(res, WithAlign(U::from(read(val)), A::SELF));
+                    if TypeId::of::<T>() == TypeId::of::<U>() {
+                        let result = read(transmute(&mut values));
+                        forget(values);
+                        result
+                    } else {
+                        let mut result: [U; $size] = ::std::mem::uninitialized();
+                        for i in 0 .. $size {
+                            write(&mut result[i], read(&mut values[i]).into());
+                        }
+                        forget(values);
+                        result
                     }
-                    forget(values);
-                    results
                 }
             }
         }
 
-        impl<T, U> From<[T; $size]> for GArray<[U; $size]>
+        impl<T, U> From<[T; $size]> for Array<[Element<U>; $size]>
         where
-            T: Copy,
-            [U; $size]: ArrayStorage,
-            <[U; $size] as ArrayStorage>::Storage: ArrayFrom<[T; $size]>,
+            T: Into<U> + 'static,
+            U: 'static,
         {
             fn from(values: [T; $size]) -> Self {
-                GArray(ArrayFrom::from(values))
+                use std::{mem::{align_of, size_of, forget, transmute}, ptr::read};
+
+                let values: [U; $size] = ArrayFrom::array_from(values);
+                if align_of::<U>() == align_of::<Element<U>>() {
+                    let mut values = values;
+                    debug_assert_eq!(size_of::<U>(), size_of::<Element<U>>());
+                    Array(unsafe {
+                        let result = read(transmute(&mut values));
+                        forget(values);
+                        result
+                    })
+                } else {
+                    Array(ArrayFrom::array_from(values))
+                }
+            }
+        }
+
+        impl<T> AsRef<[Element<T>; $size]> for Array<[Element<T>; $size]> {
+            fn as_ref(&self) -> &[Element<T>; $size] {
+                &self.0
+            }
+        }
+
+        impl<T> AsMut<[Element<T>; $size]> for Array<[Element<T>; $size]> {
+            fn as_mut(&mut self) -> &mut [Element<T>; $size] {
+                &mut self.0
             }
         }
     }
