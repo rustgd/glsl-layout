@@ -47,10 +47,10 @@ fn rule3() {
 fn rule4() {
     pub use std::mem::{align_of, size_of};
 
-    assert_eq!(align_of::<array![boolean; 3]>(), size_of::< vec4>());
-    assert_eq!(align_of::<array![int; 1]>(), size_of::< vec4>());
-    assert_eq!(align_of::<array![float; 7]>(), size_of::< vec4>());
-    assert_eq!(align_of::<array![dvec4; 2]>(), size_of::<dvec4>());
+    assert_eq!(align_of::<Array![boolean; 3]>(), size_of::< vec4>());
+    assert_eq!(align_of::<Array![int; 1]>(), size_of::< vec4>());
+    assert_eq!(align_of::<Array![float; 7]>(), size_of::< vec4>());
+    assert_eq!(align_of::<Array![dvec4; 2]>(), size_of::<dvec4>());
 }
 
 #[test]

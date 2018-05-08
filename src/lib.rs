@@ -5,28 +5,6 @@
 //! See [https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159](specs) for alignment rules.
 //!
 
-/// Array storage.
-/// `foo: array![float; N]` is equivalent to glsl's `float foo[N];`.
-///
-/// `array![float; N]` implements `From<[float; N]`.
-///
-/// # Examples
-/// 
-/// ```rust
-/// # #[macro_use] extern crate glsl_layout;
-/// # use glsl_layout::float;
-/// # fn main() {
-/// let x: array![float; 3] = [1.0f32, 2.0f32, 3.0f32].into();
-/// # }
-/// ```
-///
-#[macro_export]
-macro_rules! array {
-    ($type:ty; $size:tt) => {
-        $crate::Array<[$crate::Element<$type>; $size]>
-    }
-}
-
 /// Define structure to use upload to UBO.
 ///
 /// # Examples
@@ -57,6 +35,8 @@ macro_rules! uniform {
 
 mod scalar;
 mod vec;
+
+#[macro_use]
 mod array;
 mod mat;
 

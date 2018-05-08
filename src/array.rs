@@ -1,5 +1,8 @@
 
-use std::slice::{Iter as SliceIter, IterMut as SliceIterMut};
+use std::{
+    marker::PhantomData,
+    slice::{Iter as SliceIter, IterMut as SliceIterMut},
+};
 
 pub(crate) trait ArrayFrom<A> {
     fn array_from(array: A) -> Self;
@@ -9,7 +12,7 @@ pub(crate) trait ArrayFrom<A> {
 /// Elements for array are aligned to 16 bytes (size of vec4) at least.
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
-pub struct Element<T>(T);
+pub struct Element<T>(pub T);
 
 impl<T> From<T> for Element<T> {
     fn from(values: T) -> Self {
@@ -33,7 +36,62 @@ impl<T> AsMut<T> for Element<T> {
 /// This type implements useful traits for converting from unwrapped types.
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
-pub struct Array<A>(A);
+pub struct Array<T, A>(pub A, pub PhantomData<fn(T)>);
+
+impl<T, A> Array<T, A> {
+    pub fn new(array: A) -> Self {
+        Array(array, PhantomData)
+    }
+}
+
+impl<T, A> AsRef<A> for Array<T, A> {
+    fn as_ref(&self) -> &A {
+        &self.0
+    }
+}
+
+impl<T, A> AsMut<A> for Array<T, A> {
+    fn as_mut(&mut self) -> &mut A {
+        &mut self.0
+    }
+}
+
+impl<T, A> Array<T, A>
+where
+    A: AsMut<[Element<T>]> + AsRef<[Element<T>]>,
+{
+    pub fn iter<'a>(&'a self) -> ArrayIter<SliceIter<'a, Element<T>>> {
+        ArrayIter(self.0.as_ref().iter())
+    }
+
+    pub fn iter_mut<'a,>(&'a mut self) -> ArrayIter<SliceIterMut<'a, Element<T>>> {
+        ArrayIter(self.0.as_mut().iter_mut())
+    }
+}
+
+impl<'a, T, A> IntoIterator for &'a Array<T, A>
+where
+    A: AsMut<[Element<T>]> + AsRef<[Element<T>]>,
+{
+    type Item = &'a T;
+    type IntoIter = ArrayIter<SliceIter<'a, Element<T>>>;
+
+    fn into_iter(self) -> ArrayIter<SliceIter<'a, Element<T>>> {
+        self.iter()
+    }
+}
+
+impl<'a, T, A> IntoIterator for &'a mut Array<T, A>
+where
+    A: AsMut<[Element<T>]> + AsRef<[Element<T>]>,
+{
+    type Item = &'a mut T;
+    type IntoIter = ArrayIter<SliceIterMut<'a, Element<T>>>;
+
+    fn into_iter(self) -> ArrayIter<SliceIterMut<'a, Element<T>>> {
+        self.iter_mut()
+    }
+}
 
 /// Array ref iterator
 /// Iterate over references to inner values.
@@ -107,7 +165,7 @@ macro_rules! impl_array {
             }
         }
 
-        impl<T, U> From<[T; $size]> for Array<[Element<U>; $size]>
+        impl<T, U> From<[T; $size]> for Array<U, [Element<U>; $size]>
         where
             T: Into<U> + 'static,
             U: 'static,
@@ -116,50 +174,69 @@ macro_rules! impl_array {
                 use std::{mem::{align_of, size_of, forget, transmute}, ptr::read};
 
                 let values: [U; $size] = ArrayFrom::array_from(values);
-                if align_of::<U>() == align_of::<Element<U>>() {
+                let result = if align_of::<U>() == align_of::<Element<U>>() {
                     let mut values = values;
                     debug_assert_eq!(size_of::<U>(), size_of::<Element<U>>());
-                    Array(unsafe {
+                    unsafe {
                         let result = read(transmute(&mut values));
                         forget(values);
                         result
-                    })
+                    }
                 } else {
-                    Array(ArrayFrom::array_from(values))
-                }
-            }
-        }
+                    ArrayFrom::array_from(values)
+                };
 
-        impl<T> AsRef<[Element<T>; $size]> for Array<[Element<T>; $size]> {
-            fn as_ref(&self) -> &[Element<T>; $size] {
-                &self.0
-            }
-        }
-
-        impl<T> AsMut<[Element<T>; $size]> for Array<[Element<T>; $size]> {
-            fn as_mut(&mut self) -> &mut [Element<T>; $size] {
-                &mut self.0
-            }
-        }
-
-        impl<'a, T> IntoIterator for &'a Array<[Element<T>; $size]> {
-            type Item = &'a T;
-            type IntoIter = ArrayIter<SliceIter<'a, Element<T>>>;
-
-            fn into_iter(self) -> ArrayIter<SliceIter<'a, Element<T>>> {
-                ArrayIter(self.0.iter())
-            }
-        }
-
-        impl<'a, T> IntoIterator for &'a mut Array<[Element<T>; $size]> {
-            type Item = &'a mut T;
-            type IntoIter = ArrayIter<SliceIterMut<'a, Element<T>>>;
-
-            fn into_iter(self) -> ArrayIter<SliceIterMut<'a, Element<T>>> {
-                ArrayIter(self.0.iter_mut())
+                Array::new(result)
             }
         }
     }
+}
+
+/// Array storage.
+/// `foo: array![float; N]` is equivalent to glsl's `float foo[N];`.
+///
+/// `array![float; N]` implements `From<[float; N]`.
+///
+/// # Examples
+/// 
+/// ```rust
+/// # #[macro_use] extern crate glsl_layout;
+/// # use glsl_layout::float;
+/// # fn main() {
+/// let x: Array![float; 3] = [1.0f32, 2.0f32, 3.0f32].into();
+/// # }
+/// ```
+///
+#[macro_export]
+macro_rules! Array {
+    ($type:ty; $size:tt) => {
+        $crate::Array<$type, [$crate::Element<$type>; $size]>
+    };
+}
+
+/// This macro initialize `Array` similar to native array initialization.
+/// This might be the best choice to initialize big array.
+/// 
+/// # Example
+/// 
+/// ```rust
+/// # #[macro_use] extern crate glsl_layout;
+/// # use glsl_layout::{double, float};
+/// # fn main() {
+/// let _: Array![double; 1024] = array![0f64; 1024];
+/// let _: Array![float; 3] = array![1f32, 2f32, 3f32];
+/// # }
+/// ```
+///
+#[macro_export]
+macro_rules! array {
+    ($value:expr; $size:tt) => {
+        $crate::Array::new([$crate::Element($value); $size])
+    };
+
+    ($($value:expr),* $(,)*) => {
+        $crate::Array::new([$($crate::Element($value)),*])
+    };
 }
 
 impl_array!(000);
