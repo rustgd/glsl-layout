@@ -1,4 +1,6 @@
 
+use std::slice::{Iter as SliceIter, IterMut as SliceIterMut};
+
 pub(crate) trait ArrayFrom<A> {
     fn array_from(array: A) -> Self;
 }
@@ -32,6 +34,51 @@ impl<T> AsMut<T> for Element<T> {
 #[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
 pub struct Array<A>(A);
+
+/// Array ref iterator
+/// Iterate over references to inner values.
+pub struct ArrayIter<I>(I);
+
+impl<'a, T> Iterator for ArrayIter<SliceIter<'a, Element<T>>> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<&'a T> {
+        self.0.next().map(|elem| &elem.0)
+    }
+}
+
+impl<'a, T> ExactSizeIterator for ArrayIter<SliceIter<'a, Element<T>>> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIter<'a, Element<T>>> {
+    fn next_back(&mut self) -> Option<&'a T> {
+        self.0.next_back().map(|elem| &elem.0)
+    }
+}
+
+impl<'a, T> Iterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
+    type Item = &'a mut T;
+
+    fn next(&mut self) -> Option<&'a mut T> {
+        self.0.next().map(|elem| &mut elem.0)
+    }
+}
+
+impl<'a, T> ExactSizeIterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
+    fn next_back(&mut self) -> Option<&'a mut T> {
+        self.0.next_back().map(|elem| &mut elem.0)
+    }
+}
+
 
 macro_rules! impl_array {
     ($size:tt) => {
@@ -92,6 +139,24 @@ macro_rules! impl_array {
         impl<T> AsMut<[Element<T>; $size]> for Array<[Element<T>; $size]> {
             fn as_mut(&mut self) -> &mut [Element<T>; $size] {
                 &mut self.0
+            }
+        }
+
+        impl<'a, T> IntoIterator for &'a Array<[Element<T>; $size]> {
+            type Item = &'a T;
+            type IntoIter = ArrayIter<SliceIter<'a, Element<T>>>;
+
+            fn into_iter(self) -> ArrayIter<SliceIter<'a, Element<T>>> {
+                ArrayIter(self.0.iter())
+            }
+        }
+
+        impl<'a, T> IntoIterator for &'a mut Array<[Element<T>; $size]> {
+            type Item = &'a mut T;
+            type IntoIter = ArrayIter<SliceIterMut<'a, Element<T>>>;
+
+            fn into_iter(self) -> ArrayIter<SliceIterMut<'a, Element<T>>> {
+                ArrayIter(self.0.iter_mut())
             }
         }
     }

@@ -4,7 +4,8 @@
 pub struct boolean(u32);
 
 impl boolean {
-    fn new(value: bool) -> Self {
+    /// Create `boolean` from `bool`.
+    pub fn new(value: bool) -> Self {
         value.into()
     }
 }
