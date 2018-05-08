@@ -2,7 +2,7 @@
 //!
 //! This crates provides data types to build structures ready to upload into UBO.
 //! Data layout will match one for uniform blocks declared with `layout(std140)`.
-//! See [https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159](specs) for alignment rules.
+//! See [specs](https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159) for alignment rules.
 //!
 
 /// Define structure to use upload to UBO.
