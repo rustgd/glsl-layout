@@ -50,12 +50,12 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
                 #aligned_fields,
             )*}
 
-            impl _glsl_layout::Uniform for #name {
+            unsafe impl _glsl_layout::Uniform for #name {
                 type Align = _glsl_layout::align::Align16;
                 type Std140 = #rname;
                 fn std140(&self) -> #rname {
                     #rname {
-                        #(#field_names: self.#field_names2.into(),)*
+                        #(#field_names: self.#field_names2.std140(),)*
                         ..Default::default()
                     }
                 }

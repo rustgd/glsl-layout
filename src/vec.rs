@@ -39,7 +39,7 @@ macro_rules! implement_vec {
             }
         }
 
-        impl Uniform for $vec {
+        unsafe impl Uniform for $vec {
             type Align = $align;
             type Std140 = $vec;
             fn std140(&self) -> $vec {

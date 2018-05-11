@@ -4,6 +4,9 @@ use std::{
     slice::{Iter as SliceIter, IterMut as SliceIterMut},
 };
 
+use align::Align16;
+use uniform::Uniform;
+
 #[doc(hidden)]
 pub trait ArrayFrom<A> {
     fn array_from(array: A) -> Self;
@@ -32,6 +35,18 @@ impl<T> AsMut<T> for Element<T> {
         &mut self.0
     }
 }
+
+// unsafe impl<T> Uniform for Element<T>
+// where
+//     T: Uniform,
+// {
+//     type Align = Align16;
+//     type Std140 = Element<T::Std140>;
+
+//     fn std140(&self) -> Element<T::Std140> {
+//         Element(self.0.std140())
+//     }
+// }
 
 /// Array of `Element`s.
 /// This type implements useful traits for converting from unwrapped types.
@@ -141,77 +156,112 @@ impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
 #[macro_export]
 macro_rules! impl_array {
     ($size:tt) => {
-        impl<T, U> $crate::ArrayFrom<[T; $size]> for [U; $size]
+        impl<T, U> ArrayFrom<[T; $size]> for [U; $size]
         where
-            T: Into<U> + 'static,
-            U: 'static,
+            T: Into<U>,
         {
             fn array_from(mut values: [T; $size]) -> Self {
-                use std::{any::TypeId, mem::{forget, transmute}, ptr::{read, write}};
+                use std::{mem::forget, ptr::{read, write}};
 
                 unsafe {
-                    if TypeId::of::<T>() == TypeId::of::<U>() {
-                        let result = read(transmute(&mut values));
-                        forget(values);
-                        result
-                    } else {
-                        let mut result: [U; $size] = ::std::mem::uninitialized();
-                        for i in 0 .. $size {
-                            write(&mut result[i], read(&mut values[i]).into());
-                        }
-                        forget(values);
-                        result
+                    let mut result: [U; $size] = ::std::mem::uninitialized();
+                    for i in 0 .. $size {
+                        write(&mut result[i], read(&mut values[i]).into());
                     }
+                    forget(values);
+                    result
                 }
             }
         }
 
-        impl<T, U> From<[T; $size]> for $crate::Array<U, [Element<U>; $size]>
+        impl<T, U> From<[T; $size]> for Array<U, [U; $size]>
         where
-            T: Into<U> + 'static,
-            U: 'static,
+            T: Into<U>,
         {
             fn from(values: [T; $size]) -> Self {
-                use std::{mem::{align_of, size_of, forget, transmute}, ptr::read};
+                Array(ArrayFrom::array_from(values), PhantomData)
+            }
+        }
 
+        impl<T, U> From<[T; $size]> for Array<U, [Element<U>; $size]>
+        where
+            T: Into<U>,
+        {
+            fn from(values: [T; $size]) -> Self {
                 let values: [U; $size] = ArrayFrom::array_from(values);
-                let result = if align_of::<U>() == align_of::<Element<U>>() {
-                    let mut values = values;
-                    debug_assert_eq!(size_of::<U>(), size_of::<Element<U>>());
-                    unsafe {
-                        let result = read(transmute(&mut values));
-                        forget(values);
-                        result
+                Array(ArrayFrom::array_from(values), PhantomData)
+            }
+        }
+
+        unsafe impl<T> Uniform for [T; $size]
+        where
+            T: Uniform,
+        {
+            type Align = Align16;
+            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
+
+            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
+                use std::{mem::{align_of, size_of, transmute, uninitialized}, ptr::{copy_nonoverlapping, write}};
+
+                unsafe {
+                    let mut result: [Element<T::Std140>; $size] = uninitialized();
+                    if size_of::<T>() == size_of::<Element<T::Std140>>() && align_of::<T>() == align_of::<Element<T::Std140>>() {
+                        copy_nonoverlapping(transmute::<_, &[Element<T::Std140>; $size]>(self), &mut result, 1);
+                    } else {
+                        for i in 0 .. $size {
+                            write(&mut result[i], Element(self[i].std140()));
+                        }
                     }
-                } else {
-                    ArrayFrom::array_from(values)
-                };
-
-                Array::new(result)
+                    Array(result, PhantomData)
+                }
             }
         }
 
-        impl<T> $crate::Uniform for [T; $size]
+        unsafe impl<T> Uniform for [Element<T>; $size]
         where
-            T: $crate::Uniform + Copy + 'static,
+            T: Uniform,
         {
-            type Align = $crate::align::Align16;
-            type Std140 = $crate::Array<T, [$crate::Element<T>; $size]>;
+            type Align = Align16;
+            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
 
-            fn std140(&self) -> $crate::Array<T, [$crate::Element<T>; $size]> {
-                <[T; $size]>::clone(self).into()
+            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
+                use std::{mem::{align_of, size_of, transmute, uninitialized}, ptr::{copy_nonoverlapping, write}};
+
+                unsafe {
+                    let mut result: [Element<T::Std140>; $size] = uninitialized();
+                    if size_of::<Element<T>>() == size_of::<Element<T::Std140>>() && align_of::<Element<T>>() == align_of::<Element<T::Std140>>() {
+                        copy_nonoverlapping(transmute::<_, &[Element<T::Std140>; $size]>(self), &mut result, 1);
+                    } else {
+                        for i in 0 .. $size {
+                            write(&mut result[i], Element(self[i].0.std140()));
+                        }
+                    }
+                    Array(result, PhantomData)
+                }
             }
         }
 
-        impl<T> $crate::Uniform for $crate::Array<T, [$crate::Element<T>; $size]>
+        unsafe impl<T> Uniform for Array<T, [T; $size]>
         where
-            T: $crate::Uniform + Copy + 'static,
+            T: Uniform,
         {
-            type Align = $crate::align::Align16;
-            type Std140 = $crate::Array<T, [$crate::Element<T>; $size]>;
+            type Align = Align16;
+            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
 
-            fn std140(&self) -> $crate::Array<T, [$crate::Element<T>; $size]> {
-                self.clone()
+            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
+                self.0.std140()
+            }
+        }
+
+        unsafe impl<T> Uniform for Array<T, [Element<T>; $size]>
+        where
+            T: Uniform,
+        {
+            type Align = Align16;
+            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
+
+            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
+                self.0.std140()
             }
         }
     }
@@ -222,34 +272,34 @@ impl_array!(001);
 impl_array!(002);
 impl_array!(003);
 impl_array!(004);
-impl_array!(005);
-impl_array!(006);
-impl_array!(007);
-impl_array!(008);
-impl_array!(009);
-impl_array!(010);
-impl_array!(011);
-impl_array!(012);
-impl_array!(013);
-impl_array!(014);
-impl_array!(015);
-impl_array!(016);
-impl_array!(017);
-impl_array!(018);
-impl_array!(019);
-impl_array!(020);
-impl_array!(021);
-impl_array!(022);
-impl_array!(023);
-impl_array!(024);
-impl_array!(025);
-impl_array!(026);
-impl_array!(027);
-impl_array!(028);
-impl_array!(029);
-impl_array!(030);
-impl_array!(031);
-impl_array!(032);
+// impl_array!(005);
+// impl_array!(006);
+// impl_array!(007);
+// impl_array!(008);
+// impl_array!(009);
+// impl_array!(010);
+// impl_array!(011);
+// impl_array!(012);
+// impl_array!(013);
+// impl_array!(014);
+// impl_array!(015);
+// impl_array!(016);
+// impl_array!(017);
+// impl_array!(018);
+// impl_array!(019);
+// impl_array!(020);
+// impl_array!(021);
+// impl_array!(022);
+// impl_array!(023);
+// impl_array!(024);
+// impl_array!(025);
+// impl_array!(026);
+// impl_array!(027);
+// impl_array!(028);
+// impl_array!(029);
+// impl_array!(030);
+// impl_array!(031);
+// impl_array!(032);
 
 #[cfg(feature="bigger-arrays")]
 mod impl_bigger_arrays {

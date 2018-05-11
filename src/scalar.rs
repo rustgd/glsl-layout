@@ -29,7 +29,7 @@ impl From<boolean> for bool {
     }
 }
 
-impl Uniform for boolean {
+unsafe impl Uniform for boolean {
     type Align = Align4;
     type Std140 = boolean;
     fn std140(&self) -> boolean {
@@ -40,7 +40,7 @@ impl Uniform for boolean {
 /// Signed integer value.
 pub type int = i32;
 
-impl Uniform for int {
+unsafe impl Uniform for int {
     type Align = Align4;
     type Std140 = int;
     fn std140(&self) -> int {
@@ -51,7 +51,7 @@ impl Uniform for int {
 /// Unsigned integer value.
 pub type uint = u32;
 
-impl Uniform for uint {
+unsafe impl Uniform for uint {
     type Align = Align4;
     type Std140 = uint;
     fn std140(&self) -> uint {
@@ -62,7 +62,7 @@ impl Uniform for uint {
 /// floating-point value.
 pub type float = f32;
 
-impl Uniform for float {
+unsafe impl Uniform for float {
     type Align = Align4;
     type Std140 = float;
     fn std140(&self) -> float {
@@ -73,7 +73,7 @@ impl Uniform for float {
 /// Double-precision floating-point value.
 pub type double = f64;
 
-impl Uniform for double {
+unsafe impl Uniform for double {
     type Align = Align8;
     type Std140 = double;
     fn std140(&self) -> double {

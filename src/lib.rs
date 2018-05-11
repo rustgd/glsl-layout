@@ -7,17 +7,71 @@
 //! # Examples
 //!
 //! ```rust
+//! # macro_rules! offset_of {
+//! #     ($type:ty: $($name:ident).+) => {
+//! #         unsafe {
+//! #             let value: $type = ::std::mem::uninitialized();
+//! #             let offset = &value $(.$name)+ as *const _ as usize;
+//! #             let base = &value as *const _ as usize;
+//! #             offset - base
+//! #         }
+//! #     }
+//! # }
+//! # 
 //! # #[macro_use]
 //! # extern crate glsl_layout;
 //! # use glsl_layout::*;
 //! # fn main() {
-//! #[derive(Copy, Clone, Debug, Uniform)]    
+//! #     use std::mem::size_of;
+//! # 
+//! #[derive(Debug, Default, Clone, Copy, Uniform)]
 //! struct Foo {
 //!     x: int,
-//!     y: dvec3,
-//!     z: mat4x4,
+//!     y: vec3,
+//!     z: float,
+//!     w: mat4x4,
+//!     a: [f32; 3],
+//!     b: f32,
 //! }
-//! let foo = Foo { x: 4, y: [0.0; 3].into(), z: [[0.0; 4]; 4].into() };
+//! 
+//! type UFoo = <Foo as Uniform>::Std140;
+//! 
+//! assert_eq!(
+//!     offset_of!(UFoo: y),
+//!     round_up_to(size_of::<int>(), 16), // `vec3` has alignment of size `vec4`
+//!     "Offset of field `y` must be equal of size of `x` rounded up to the alignment",
+//! );
+//! 
+//! assert_eq!(
+//!     offset_of!(UFoo: z),
+//!     round_up_to(offset_of!(UFoo: y) + size_of::<vec3>(), 4),
+//!     "Field `z` must follow `y`. `y` should not have padding at the end",
+//! );
+//! 
+//! assert_eq!(
+//!     offset_of!(UFoo: b),
+//!     offset_of!(UFoo: a) + size_of::<[[f32; 4]; 3]>(),
+//!     "Field `b` must follow `a`. But `a` has padding at the end.",
+//! );
+//! # 
+//! let foo_uniform = Foo {
+//!     x: 2,
+//!     y: [0.0; 3].into(),
+//!     z: 0.0,
+//!     w: [[0.0; 4]; 4].into(),
+//!     a: [0.0; 3].into(),
+//!     b: 0.0,
+//! }.std140();
+//! 
+//! let _ = Foo::raw(&foo_uniform);
+//! # }
+//! 
+//! # fn round_up_to(offset: usize, align: usize) -> usize {
+//! #     if offset % align == 0 {
+//! #         offset
+//! #     } else {
+//! #         (((offset - 1) / align) + 1) * align
+//! #     }
 //! # }
 //! ```
 //!
@@ -46,3 +100,8 @@ pub use uniform::*;
 extern crate glsl_layout_derive;
 #[doc(hidden)]
 pub use glsl_layout_derive::*;
+
+unsafe fn as_ref_u8<T>(value: &T) -> &[u8] {
+    use std::{mem::{transmute, size_of}, slice::from_raw_parts};
+    from_raw_parts(transmute(value), size_of::<T>())
+}
