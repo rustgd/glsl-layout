@@ -1,6 +1,9 @@
 
+use align::{Align4, Align8};
+use uniform::Uniform;
+
 /// Boolean value.
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct boolean(u32);
 
 impl boolean {
@@ -26,14 +29,54 @@ impl From<boolean> for bool {
     }
 }
 
+impl Uniform for boolean {
+    type Align = Align4;
+    type Std140 = boolean;
+    fn std140(&self) -> boolean {
+        *self
+    }
+}
+
 /// Signed integer value.
 pub type int = i32;
+
+impl Uniform for int {
+    type Align = Align4;
+    type Std140 = int;
+    fn std140(&self) -> int {
+        *self
+    }
+}
 
 /// Unsigned integer value.
 pub type uint = u32;
 
+impl Uniform for uint {
+    type Align = Align4;
+    type Std140 = uint;
+    fn std140(&self) -> uint {
+        *self
+    }
+}
+
 /// floating-point value.
 pub type float = f32;
 
+impl Uniform for float {
+    type Align = Align4;
+    type Std140 = float;
+    fn std140(&self) -> float {
+        *self
+    }
+}
+
 /// Double-precision floating-point value.
 pub type double = f64;
+
+impl Uniform for double {
+    type Align = Align8;
+    type Std140 = double;
+    fn std140(&self) -> double {
+        *self
+    }
+}

@@ -1,9 +1,11 @@
 
+use align::{Align8, Align16, Align32};
 use array::ArrayFrom;
 use scalar::{boolean, int, uint, float, double};
+use uniform::Uniform;
 
 macro_rules! implement_vec {
-    ($vec:ident => [$type:ty ; $size:tt]) => {
+    ($vec:ident => [$type:ty ; $size:tt] : $align:ty) => {
         impl<T> From<[T; $size]> for $vec
         where
             T: Into<$type> + 'static,
@@ -36,6 +38,14 @@ macro_rules! implement_vec {
                 &mut self.0
             }
         }
+
+        impl Uniform for $vec {
+            type Align = $align;
+            type Std140 = $vec;
+            fn std140(&self) -> $vec {
+                *self
+            }
+        }
     }
 }
 
@@ -53,10 +63,9 @@ macro_rules! implement_vec {
 /// # }
 /// ```
 ///
-#[repr(C, align(8))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct bvec2([boolean; 2]);
-implement_vec!(bvec2 => [boolean; 2]);
+implement_vec!(bvec2 => [boolean; 2] : Align8);
 
 /// Vector of 3 `boolean` values.
 /// `foo: bvec3` is equivalent to glsl's `bvec3 foo;`
@@ -71,10 +80,9 @@ implement_vec!(bvec2 => [boolean; 2]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct bvec3([boolean; 3]);
-implement_vec!(bvec3 => [boolean; 3]);
+implement_vec!(bvec3 => [boolean; 3] : Align16);
 
 /// Vector of 4 `boolean` values.
 /// `foo: bvec4` is equivalent to glsl's `bvec4 foo;`
@@ -89,10 +97,9 @@ implement_vec!(bvec3 => [boolean; 3]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct bvec4([boolean; 4]);
-implement_vec!(bvec4 => [boolean; 4]);
+implement_vec!(bvec4 => [boolean; 4] : Align16);
 
 
 /// Vector of 2 `int` values.
@@ -108,10 +115,9 @@ implement_vec!(bvec4 => [boolean; 4]);
 /// # }
 /// ```
 ///
-#[repr(C, align(8))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct ivec2([int; 2]);
-implement_vec!(ivec2 => [int; 2]);
+implement_vec!(ivec2 => [int; 2] : Align8);
 
 /// Vector of 3 `int` values.
 /// `foo: ivec3` is equivalent to glsl's `ivec3 foo;`
@@ -126,10 +132,9 @@ implement_vec!(ivec2 => [int; 2]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct ivec3([int; 3]);
-implement_vec!(ivec3 => [int; 3]);
+implement_vec!(ivec3 => [int; 3] : Align16);
 
 /// Vector of 4 `int` values.
 /// `foo: ivec4` is equivalent to glsl's `ivec4 foo;`
@@ -144,10 +149,9 @@ implement_vec!(ivec3 => [int; 3]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct ivec4([int; 4]);
-implement_vec!(ivec4 => [int; 4]);
+implement_vec!(ivec4 => [int; 4] : Align16);
 
 
 /// Vector of 2 `uint` values.
@@ -163,10 +167,9 @@ implement_vec!(ivec4 => [int; 4]);
 /// # }
 /// ```
 ///
-#[repr(C, align(8))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct uvec2([uint; 2]);
-implement_vec!(uvec2 => [uint; 2]);
+implement_vec!(uvec2 => [uint; 2] : Align8);
 
 /// Vector of 3 `uint` values.
 /// `foo: uvec3` is equivalent to glsl's `uvec3 foo;`
@@ -181,10 +184,9 @@ implement_vec!(uvec2 => [uint; 2]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct uvec3([uint; 3]);
-implement_vec!(uvec3 => [uint; 3]);
+implement_vec!(uvec3 => [uint; 3] : Align16);
 
 /// Vector of 4 `uint` values.
 /// `foo: uvec4` is equivalent to glsl's `uvec4 foo;`
@@ -199,10 +201,9 @@ implement_vec!(uvec3 => [uint; 3]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct uvec4([uint; 4]);
-implement_vec!(uvec4 => [uint; 4]);
+implement_vec!(uvec4 => [uint; 4] : Align16);
 
 
 /// Vector of 2 `float` values.
@@ -218,10 +219,9 @@ implement_vec!(uvec4 => [uint; 4]);
 /// # }
 /// ```
 ///
-#[repr(C, align(8))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq)]
 pub struct vec2([float; 2]);
-implement_vec!(vec2 => [float; 2]);
+implement_vec!(vec2 => [float; 2] : Align8);
 
 /// Vector of 3 `float` values.
 /// `foo: vec3` is equivalent to glsl's `vec3 foo;`
@@ -236,10 +236,9 @@ implement_vec!(vec2 => [float; 2]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq)]
 pub struct vec3([float; 3]);
-implement_vec!(vec3 => [float; 3]);
+implement_vec!(vec3 => [float; 3] : Align16);
 
 
 /// Vector of 4 `float` values.
@@ -255,10 +254,9 @@ implement_vec!(vec3 => [float; 3]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq)]
 pub struct vec4([float; 4]);
-implement_vec!(vec4 => [float; 4]);
+implement_vec!(vec4 => [float; 4] : Align16);
 
 
 /// Vector of 2 `double` value.
@@ -274,10 +272,9 @@ implement_vec!(vec4 => [float; 4]);
 /// # }
 /// ```
 ///
-#[repr(C, align(16))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq)]
 pub struct dvec2([double; 2]);
-implement_vec!(dvec2 => [double; 2]);
+implement_vec!(dvec2 => [double; 2] : Align16);
 
 /// Vector of 3 `double` value.
 /// `foo: dvec3` is equivalent to glsl's `dvec3 foo;`
@@ -292,10 +289,9 @@ implement_vec!(dvec2 => [double; 2]);
 /// # }
 /// ```
 ///
-#[repr(C, align(32))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq)]
 pub struct dvec3([double; 3]);
-implement_vec!(dvec3 => [double; 3]);
+implement_vec!(dvec3 => [double; 3] : Align32);
 
 
 /// Vector of 4 `double` value.
@@ -311,7 +307,6 @@ implement_vec!(dvec3 => [double; 3]);
 /// # }
 /// ```
 ///
-#[repr(C, align(32))]
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq)]
 pub struct dvec4([double; 4]);
-implement_vec!(dvec4 => [double; 4]);
+implement_vec!(dvec4 => [double; 4] : Align32);

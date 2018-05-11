@@ -4,13 +4,14 @@ use std::{
     slice::{Iter as SliceIter, IterMut as SliceIterMut},
 };
 
-pub(crate) trait ArrayFrom<A> {
+#[doc(hidden)]
+pub trait ArrayFrom<A> {
     fn array_from(array: A) -> Self;
 }
 
 /// Aligning wrapper.
 /// Elements for array are aligned to 16 bytes (size of vec4) at least.
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
 pub struct Element<T>(pub T);
 
@@ -34,7 +35,7 @@ impl<T> AsMut<T> for Element<T> {
 
 /// Array of `Element`s.
 /// This type implements useful traits for converting from unwrapped types.
-#[derive(Clone, Copy, Debug, PartialOrd, PartialEq, Ord, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
 pub struct Array<T, A>(pub A, pub PhantomData<fn(T)>);
 
@@ -137,10 +138,10 @@ impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
     }
 }
 
-
+#[macro_export]
 macro_rules! impl_array {
     ($size:tt) => {
-        impl<T, U> ArrayFrom<[T; $size]> for [U; $size]
+        impl<T, U> $crate::ArrayFrom<[T; $size]> for [U; $size]
         where
             T: Into<U> + 'static,
             U: 'static,
@@ -165,7 +166,7 @@ macro_rules! impl_array {
             }
         }
 
-        impl<T, U> From<[T; $size]> for Array<U, [Element<U>; $size]>
+        impl<T, U> From<[T; $size]> for $crate::Array<U, [Element<U>; $size]>
         where
             T: Into<U> + 'static,
             U: 'static,
@@ -189,54 +190,31 @@ macro_rules! impl_array {
                 Array::new(result)
             }
         }
+
+        impl<T> $crate::Uniform for [T; $size]
+        where
+            T: $crate::Uniform + Copy + 'static,
+        {
+            type Align = $crate::align::Align16;
+            type Std140 = $crate::Array<T, [$crate::Element<T>; $size]>;
+
+            fn std140(&self) -> $crate::Array<T, [$crate::Element<T>; $size]> {
+                <[T; $size]>::clone(self).into()
+            }
+        }
+
+        impl<T> $crate::Uniform for $crate::Array<T, [$crate::Element<T>; $size]>
+        where
+            T: $crate::Uniform + Copy + 'static,
+        {
+            type Align = $crate::align::Align16;
+            type Std140 = $crate::Array<T, [$crate::Element<T>; $size]>;
+
+            fn std140(&self) -> $crate::Array<T, [$crate::Element<T>; $size]> {
+                self.clone()
+            }
+        }
     }
-}
-
-/// Array storage.
-/// `foo: array![float; N]` is equivalent to glsl's `float foo[N];`.
-///
-/// `array![float; N]` implements `From<[float; N]`.
-///
-/// # Examples
-/// 
-/// ```rust
-/// # #[macro_use] extern crate glsl_layout;
-/// # use glsl_layout::float;
-/// # fn main() {
-/// let x: Array![float; 3] = [1.0f32, 2.0f32, 3.0f32].into();
-/// # }
-/// ```
-///
-#[macro_export]
-macro_rules! Array {
-    ($type:ty; $size:tt) => {
-        $crate::Array<$type, [$crate::Element<$type>; $size]>
-    };
-}
-
-/// This macro initialize `Array` similar to native array initialization.
-/// This might be the best choice to initialize big array.
-/// 
-/// # Example
-/// 
-/// ```rust
-/// # #[macro_use] extern crate glsl_layout;
-/// # use glsl_layout::{double, float};
-/// # fn main() {
-/// let _: Array![double; 1024] = array![0f64; 1024];
-/// let _: Array![float; 3] = array![1f32, 2f32, 3f32];
-/// # }
-/// ```
-///
-#[macro_export]
-macro_rules! array {
-    ($value:expr; $size:tt) => {
-        $crate::Array::new([$crate::Element($value); $size])
-    };
-
-    ($($value:expr),* $(,)*) => {
-        $crate::Array::new([$($crate::Element($value)),*])
-    };
 }
 
 impl_array!(000);
