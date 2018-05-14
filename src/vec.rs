@@ -1,11 +1,10 @@
-
-use align::{Align8, Align16, Align32};
+use align::{Align16, Align32, Align8};
 use array::MapArray;
-use scalar::{boolean, int, uint, float, double};
+use scalar::{boolean, double, float, int, uint};
 use uniform::{Std140, Uniform};
 
 macro_rules! implement_vec {
-    ($vec:ident => [$type:ty ; $size:tt] : $align:tt) => {
+    ($vec:ident => [$type:ty; $size:tt]: $align:tt) => {
         impl<T> From<[T; $size]> for $vec
         where
             T: Into<$type>,
@@ -45,20 +44,21 @@ macro_rules! implement_vec {
             type Align = $align;
             type Std140 = $vec;
 
-            fn align() -> $align { $align }
+            fn align() -> $align {
+                $align
+            }
             fn std140(&self) -> $vec {
                 *self
             }
         }
-    }
+    };
 }
-
 
 /// Vector of 2 `boolean` values.
 /// `foo: bvec2` is equivalent to glsl's `bvec2 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::{boolean, bvec2};
@@ -75,7 +75,7 @@ implement_vec!(bvec2 => [boolean; 2] : Align8);
 /// `foo: bvec3` is equivalent to glsl's `bvec3 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::{boolean, bvec3};
@@ -92,7 +92,7 @@ implement_vec!(bvec3 => [boolean; 3] : Align16);
 /// `foo: bvec4` is equivalent to glsl's `bvec4 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::{boolean, bvec4};
@@ -105,12 +105,11 @@ implement_vec!(bvec3 => [boolean; 3] : Align16);
 pub struct bvec4([boolean; 4]);
 implement_vec!(bvec4 => [boolean; 4] : Align16);
 
-
 /// Vector of 2 `int` values.
 /// `foo: ivec2` is equivalent to glsl's `ivec2 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::ivec2;
@@ -127,7 +126,7 @@ implement_vec!(ivec2 => [int; 2] : Align8);
 /// `foo: ivec3` is equivalent to glsl's `ivec3 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::ivec3;
@@ -144,7 +143,7 @@ implement_vec!(ivec3 => [int; 3] : Align16);
 /// `foo: ivec4` is equivalent to glsl's `ivec4 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::ivec4;
@@ -157,12 +156,11 @@ implement_vec!(ivec3 => [int; 3] : Align16);
 pub struct ivec4([int; 4]);
 implement_vec!(ivec4 => [int; 4] : Align16);
 
-
 /// Vector of 2 `uint` values.
 /// `foo: uvec2` is equivalent to glsl's `uvec2 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::uvec2;
@@ -179,7 +177,7 @@ implement_vec!(uvec2 => [uint; 2] : Align8);
 /// `foo: uvec3` is equivalent to glsl's `uvec3 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::uvec3;
@@ -196,7 +194,7 @@ implement_vec!(uvec3 => [uint; 3] : Align16);
 /// `foo: uvec4` is equivalent to glsl's `uvec4 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::uvec4;
@@ -209,12 +207,11 @@ implement_vec!(uvec3 => [uint; 3] : Align16);
 pub struct uvec4([uint; 4]);
 implement_vec!(uvec4 => [uint; 4] : Align16);
 
-
 /// Vector of 2 `float` values.
 /// `foo: vec2` is equivalent to glsl's `vec2 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::vec2;
@@ -231,7 +228,7 @@ implement_vec!(vec2 => [float; 2] : Align8);
 /// `foo: vec3` is equivalent to glsl's `vec3 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::vec3;
@@ -244,12 +241,11 @@ implement_vec!(vec2 => [float; 2] : Align8);
 pub struct vec3([float; 3]);
 implement_vec!(vec3 => [float; 3] : Align16);
 
-
 /// Vector of 4 `float` values.
 /// `foo: vec4` is equivalent to glsl's `vec4 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::vec4;
@@ -262,12 +258,11 @@ implement_vec!(vec3 => [float; 3] : Align16);
 pub struct vec4([float; 4]);
 implement_vec!(vec4 => [float; 4] : Align16);
 
-
 /// Vector of 2 `double` value.
 /// `foo: dvec2` is equivalent to glsl's `dvec2 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::dvec2;
@@ -284,7 +279,7 @@ implement_vec!(dvec2 => [double; 2] : Align16);
 /// `foo: dvec3` is equivalent to glsl's `dvec3 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::dvec3;
@@ -297,12 +292,11 @@ implement_vec!(dvec2 => [double; 2] : Align16);
 pub struct dvec3([double; 3]);
 implement_vec!(dvec3 => [double; 3] : Align32);
 
-
 /// Vector of 4 `double` value.
 /// `foo: dvec4` is equivalent to glsl's `dvec4 foo;`
 ///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # #[macro_use] extern crate glsl_layout;
 /// # use glsl_layout::dvec4;

@@ -1,20 +1,9 @@
-
 extern crate cgmath;
 
-use self::cgmath::{Vector2, Vector3, Vector4, Matrix2, Matrix3, Matrix4};
-use scalar::{int, uint, float, double};
-use vec::{
-    ivec2, ivec3, ivec4,
-    uvec2, uvec3, uvec4,
-     vec2,  vec3,  vec4,
-    dvec2, dvec3, dvec4,
-};
-use mat::{
-    imat2, imat3, imat4,
-    umat2, umat3, umat4,
-     mat2,  mat3,  mat4,
-    dmat2, dmat3, dmat4,
-};
+use self::cgmath::{Matrix2, Matrix3, Matrix4, Vector2, Vector3, Vector4};
+use mat::{dmat2, dmat3, dmat4, imat2, imat3, imat4, mat2, mat3, mat4, umat2, umat3, umat4};
+use scalar::{double, float, int, uint};
+use vec::{dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4, vec2, vec3, vec4};
 
 macro_rules! impl_vec_from_cgmath {
     ($vec:ident : $cgmath:ident => [$type:ty; $size:tt]) => {
@@ -24,7 +13,7 @@ macro_rules! impl_vec_from_cgmath {
                 array.into()
             }
         }
-    }
+    };
 }
 
 macro_rules! impl_mat_from_cgmath {
@@ -35,7 +24,7 @@ macro_rules! impl_mat_from_cgmath {
                 array.into()
             }
         }
-    }
+    };
 }
 
 impl_vec_from_cgmath!(ivec2 : Vector2 => [int;      2]);
@@ -67,8 +56,8 @@ impl_mat_from_cgmath!(dmat4 : Matrix4 => [double;   4]);
 #[test]
 fn test_cgmath() {
     use self::cgmath::SquareMatrix;
-    use vec::dvec3;
     use mat::mat2;
+    use vec::dvec3;
 
     let _: dvec3 = Vector3::new(1.0, 2.0, 3.0).into();
     let _: mat2 = Matrix2::from_value(1.0f32).into();

@@ -1,11 +1,5 @@
-
-use vec::{
-    bvec2, bvec3, bvec4,
-    ivec2, ivec3, ivec4,
-    uvec2, uvec3, uvec4,
-     vec2,  vec3,  vec4,
-    dvec2, dvec3, dvec4,
-};
+use vec::{bvec2, bvec3, bvec4, dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4,
+          vec2, vec3, vec4};
 
 use array::{Array, Element};
 
@@ -45,9 +39,6 @@ pub type bmat3 = bmat3x3;
 /// Matrix of 4 x 4 boolean values.
 pub type bmat4 = bmat4x4;
 
-
-
-
 /// Matrix of 2 x 2 signed integer values.
 pub type imat2x2 = Array<ivec2, [Element<ivec2>; 2]>;
 
@@ -83,9 +74,6 @@ pub type imat3 = imat3x3;
 
 /// Matrix of 4 x 4 signed integer values.
 pub type imat4 = imat4x4;
-
-
-
 
 /// Matrix of 2 x 2 unsiged integer values.
 pub type umat2x2 = Array<uvec2, [Element<uvec2>; 2]>;
@@ -123,9 +111,6 @@ pub type umat3 = umat3x3;
 /// Matrix of 4 x 4 unsiged integer values.
 pub type umat4 = umat4x4;
 
-
-
-
 /// Matrix of 2 x 2 floating-point values.
 pub type mat2x2 = Array<vec2, [Element<vec2>; 2]>;
 
@@ -161,9 +146,6 @@ pub type mat3 = mat3x3;
 
 /// Matrix of 4 x 4 floating-point values.
 pub type mat4 = mat4x4;
-
-
-
 
 /// Matrix of 2 x 2 double-precision floating-point values.
 pub type dmat2x2 = Array<dvec2, [Element<dvec2>; 2]>;

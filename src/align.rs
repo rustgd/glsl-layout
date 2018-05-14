@@ -1,5 +1,3 @@
-
-
 #[repr(align(4))]
 #[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct Align4;

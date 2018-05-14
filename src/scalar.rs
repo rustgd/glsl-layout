@@ -1,4 +1,3 @@
-
 use align::{Align4, Align8};
 use uniform::{Std140, Uniform};
 
@@ -35,7 +34,9 @@ impl Uniform for boolean {
     type Align = Align4;
     type Std140 = boolean;
 
-    fn align() -> Align4 { Align4 }
+    fn align() -> Align4 {
+        Align4
+    }
     fn std140(&self) -> boolean {
         *self
     }
@@ -50,7 +51,9 @@ impl Uniform for int {
     type Align = Align4;
     type Std140 = int;
 
-    fn align() -> Align4 { Align4 }
+    fn align() -> Align4 {
+        Align4
+    }
     fn std140(&self) -> int {
         *self
     }
@@ -65,7 +68,9 @@ impl Uniform for uint {
     type Align = Align4;
     type Std140 = uint;
 
-    fn align() -> Align4 { Align4 }
+    fn align() -> Align4 {
+        Align4
+    }
     fn std140(&self) -> uint {
         *self
     }
@@ -80,7 +85,9 @@ impl Uniform for float {
     type Align = Align4;
     type Std140 = float;
 
-    fn align() -> Align4 { Align4 }
+    fn align() -> Align4 {
+        Align4
+    }
     fn std140(&self) -> float {
         *self
     }
@@ -95,7 +102,9 @@ impl Uniform for double {
     type Align = Align8;
     type Std140 = double;
 
-    fn align() -> Align8 { Align8 }
+    fn align() -> Align8 {
+        Align8
+    }
     fn std140(&self) -> double {
         *self
     }
