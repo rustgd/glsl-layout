@@ -80,7 +80,7 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
 
             #rname_impl
 
-            unsafe impl Std140 for #rname {}
+            unsafe impl _glsl_layout::Std140 for #rname {}
 
             impl _glsl_layout::Uniform for #rname {
                 type Align = _glsl_layout::align::Align16;
