@@ -45,7 +45,7 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
             extern crate glsl_layout as _glsl_layout;
 
             #[repr(C, align(16))]
-            #[derive(Clone, Debug, Default)]
+            #[derive(Clone, Copy, Debug, Default)]
             struct #rname {#(
                 #aligned_fields,
             )*}
