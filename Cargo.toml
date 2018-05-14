@@ -8,7 +8,9 @@ repository = "https://github.com/rustgd/glsl-layout"
 
 [features]
 bigger-arrays = []
+gfx = ["gfx_core", "glsl-layout-derive/gfx"]
 
 [dependencies]
 cgmath = { version = "0.16", optional = true }
 glsl-layout-derive = { path = "glsl-layout-derive" }
+gfx_core = { version = "0.8", optional = true }

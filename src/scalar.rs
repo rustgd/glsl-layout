@@ -1,3 +1,6 @@
+#[cfg(feature = "gfx")]
+use gfx_core::memory::Pod;
+
 use align::{Align4, Align8};
 use uniform::{Std140, Uniform};
 
@@ -29,6 +32,9 @@ impl From<boolean> for bool {
 }
 
 unsafe impl Std140 for boolean {}
+
+#[cfg(feature = "gfx")]
+unsafe impl Pod for boolean {}
 
 impl Uniform for boolean {
     type Align = Align4;

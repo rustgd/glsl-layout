@@ -1,5 +1,8 @@
 use std::{marker::PhantomData, slice::{Iter as SliceIter, IterMut as SliceIterMut}};
 
+#[cfg(feature = "gfx")]
+use gfx_core::memory::Pod;
+
 use align::Align16;
 use uniform::{Std140, Uniform};
 
@@ -257,6 +260,13 @@ macro_rules! impl_array {
         }
 
         unsafe impl<T> Std140 for Array<T, [Element<T>; $size]>
+        where
+            T: Std140,
+        {
+        }
+
+        #[cfg(feature = "gfx")]
+        unsafe impl<T> Pod for Array<T, [Element<T>; $size]>
         where
             T: Std140,
         {

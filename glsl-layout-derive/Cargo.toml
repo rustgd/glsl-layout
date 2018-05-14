@@ -6,6 +6,9 @@ authors = ["Zakarum <scareaangel@gmail.com>"]
 [lib]
 proc-macro = true
 
+[features]
+gfx = []
+
 [dependencies]
-syn = "*"
-quote = "*"
+syn = { version = "0.13", features = ["full"] }
+quote = "0.5"

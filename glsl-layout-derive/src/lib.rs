@@ -14,9 +14,11 @@ pub fn uniform(input: TokenStream) -> TokenStream {
 }
 
 fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
+    use std::iter::once;
+
     let name = &ast.ident;
 
-    let rname = syn::Ident::from(format!("Std140For{}", name));
+    let rname = syn::Ident::from(format!("LayoutStd140{}", name));
     
     let fields = match &ast.data {
         syn::Data::Struct(syn::DataStruct {
@@ -37,7 +39,33 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
     let field_names = fields.iter().map(|field| field.ident.unwrap());
     let field_names2 = fields.iter().map(|field| field.ident.unwrap());
 
-    let dummy = syn::Ident::from(format!("_GLSL_LAYOUT_DUMMY_FOR_{}", name));
+    let dummy = syn::Ident::from(format!("_GLSL_LAYOUT_{}", name));
+
+    #[cfg(feature="gfx")]
+    let pod = (Some(syn::token::Unsafe::default()), Some((None, syn::Path {
+                leading_colon: None,
+                segments: once(syn::PathSegment::from("_glsl_layout"))
+                    .chain(once("Pod".into()))
+                    .collect(),
+            }, syn::token::For::default())));
+
+    #[cfg(not(feature="gfx"))]
+    let pod = (None, None);
+
+    let rname_impl = syn::ItemImpl {
+        attrs: Vec::new(),
+        defaultness: None,
+        unsafety: pod.0,
+        impl_token: syn::token::Impl::default(),
+        generics: syn::Generics::default(),
+        trait_: pod.1,
+        self_ty: Box::new(syn::Type::from(syn::TypePath {
+            qself: None,
+            path: syn::Path::from(rname.clone()),
+        })),
+        brace_token: syn::token::Brace::default(),
+        items: Vec::new(),
+    };
 
     quote! {
         #[allow(bad_style)]
@@ -50,6 +78,10 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
                 #aligned_fields,
             )*}
 
+            #rname_impl
+
+            unsafe impl Std140 for #rname {}
+
             impl _glsl_layout::Uniform for #rname {
                 type Align = _glsl_layout::align::Align16;
                 type Std140 = #rname;
@@ -59,8 +91,6 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
                     self.clone()
                 }
             }
-
-            unsafe impl Std140 for #rname {}
 
             impl _glsl_layout::Uniform for #name {
                 type Align = _glsl_layout::align::Align16;
