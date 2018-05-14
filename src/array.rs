@@ -5,7 +5,7 @@ use std::{
 };
 
 use align::Align16;
-use uniform::Uniform;
+use uniform::{Std140, Uniform};
 
 pub(crate) trait MapArray<A, F> {
     fn map_array(values: A, f: F) -> Self;
@@ -255,6 +255,11 @@ macro_rules! impl_array {
                 }
             }
         }
+
+        unsafe impl<T> Std140 for Array<T, [Element<T>; $size]>
+        where
+            T: Std140,
+        {}
     }
 }
 

@@ -1,6 +1,6 @@
 
 use align::{Align4, Align8};
-use uniform::Uniform;
+use uniform::{Std140, Uniform};
 
 /// Boolean value.
 #[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
@@ -29,6 +29,8 @@ impl From<boolean> for bool {
     }
 }
 
+unsafe impl Std140 for boolean {}
+
 impl Uniform for boolean {
     type Align = Align4;
     type Std140 = boolean;
@@ -41,6 +43,8 @@ impl Uniform for boolean {
 
 /// Signed integer value.
 pub type int = i32;
+
+unsafe impl Std140 for int {}
 
 impl Uniform for int {
     type Align = Align4;
@@ -55,6 +59,8 @@ impl Uniform for int {
 /// Unsigned integer value.
 pub type uint = u32;
 
+unsafe impl Std140 for uint {}
+
 impl Uniform for uint {
     type Align = Align4;
     type Std140 = uint;
@@ -68,6 +74,8 @@ impl Uniform for uint {
 /// floating-point value.
 pub type float = f32;
 
+unsafe impl Std140 for float {}
+
 impl Uniform for float {
     type Align = Align4;
     type Std140 = float;
@@ -80,6 +88,8 @@ impl Uniform for float {
 
 /// Double-precision floating-point value.
 pub type double = f64;
+
+unsafe impl Std140 for double {}
 
 impl Uniform for double {
     type Align = Align8;

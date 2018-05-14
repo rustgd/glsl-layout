@@ -2,7 +2,7 @@
 use align::{Align8, Align16, Align32};
 use array::MapArray;
 use scalar::{boolean, int, uint, float, double};
-use uniform::Uniform;
+use uniform::{Std140, Uniform};
 
 macro_rules! implement_vec {
     ($vec:ident => [$type:ty ; $size:tt] : $align:tt) => {
@@ -38,6 +38,8 @@ macro_rules! implement_vec {
                 &mut self.0
             }
         }
+
+        unsafe impl Std140 for $vec {}
 
         impl Uniform for $vec {
             type Align = $align;
