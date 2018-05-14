@@ -74,7 +74,7 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
 
             #[repr(C, align(16))]
             #[derive(Clone, Copy, Debug, Default)]
-            struct #rname {#(
+            pub struct #rname {#(
                 #aligned_fields,
             )*}
 
