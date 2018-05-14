@@ -1,17 +1,17 @@
 
 use align::{Align8, Align16, Align32};
-use array::ArrayFrom;
+use array::MapArray;
 use scalar::{boolean, int, uint, float, double};
 use uniform::Uniform;
 
 macro_rules! implement_vec {
-    ($vec:ident => [$type:ty ; $size:tt] : $align:ty) => {
+    ($vec:ident => [$type:ty ; $size:tt] : $align:tt) => {
         impl<T> From<[T; $size]> for $vec
         where
-            T: Into<$type> + 'static,
+            T: Into<$type>,
         {
             fn from(values: [T; $size]) -> Self {
-                $vec(ArrayFrom::array_from(values))
+                $vec(MapArray::map_array(values, T::into))
             }
         }
 
@@ -39,9 +39,11 @@ macro_rules! implement_vec {
             }
         }
 
-        unsafe impl Uniform for $vec {
+        impl Uniform for $vec {
             type Align = $align;
             type Std140 = $vec;
+
+            fn align() -> $align { $align }
             fn std140(&self) -> $vec {
                 *self
             }

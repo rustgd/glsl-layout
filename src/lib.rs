@@ -9,10 +9,10 @@
 //! ```rust
 //! # macro_rules! offset_of {
 //! #     ($type:ty: $($name:ident).+) => {
-//! #         unsafe {
-//! #             let value: $type = ::std::mem::uninitialized();
+//! #         unsafe { // No dereferencing
+//! #             let value: &$type = &*::std::ptr::null();
 //! #             let offset = &value $(.$name)+ as *const _ as usize;
-//! #             let base = &value as *const _ as usize;
+//! #             let base = value as *const _ as usize;
 //! #             offset - base
 //! #         }
 //! #     }
@@ -62,8 +62,6 @@
 //!     a: [0.0; 3].into(),
 //!     b: 0.0,
 //! }.std140();
-//! 
-//! let _ = Foo::raw(&foo_uniform);
 //! # }
 //! 
 //! # fn round_up_to(offset: usize, align: usize) -> usize {
@@ -100,8 +98,3 @@ pub use uniform::*;
 extern crate glsl_layout_derive;
 #[doc(hidden)]
 pub use glsl_layout_derive::*;
-
-unsafe fn as_ref_u8<T>(value: &T) -> &[u8] {
-    use std::{mem::{transmute, size_of}, slice::from_raw_parts};
-    from_raw_parts(transmute(value), size_of::<T>())
-}

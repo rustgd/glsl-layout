@@ -7,46 +7,42 @@ use std::{
 use align::Align16;
 use uniform::Uniform;
 
-#[doc(hidden)]
-pub trait ArrayFrom<A> {
-    fn array_from(array: A) -> Self;
+pub(crate) trait MapArray<A, F> {
+    fn map_array(values: A, f: F) -> Self;
 }
 
 /// Aligning wrapper.
 /// Elements for array are aligned to 16 bytes (size of vec4) at least.
 #[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 #[repr(C, align(16))]
-pub struct Element<T>(pub T);
+pub struct Element<T: Uniform>(pub T, pub T::Align);
 
-impl<T> From<T> for Element<T> {
+impl<T> From<T> for Element<T>
+where
+    T: Uniform
+{
     fn from(values: T) -> Self {
-        Element(values)
+        Element(values, T::align())
     }
 }
 
-impl<T> AsRef<T> for Element<T> {
+impl<T> AsRef<T> for Element<T>
+where
+    T: Uniform
+{
     fn as_ref(&self) -> &T {
         &self.0
     }
 }
 
-impl<T> AsMut<T> for Element<T> {
+impl<T> AsMut<T> for Element<T>
+where
+    T: Uniform
+{
     fn as_mut(&mut self) -> &mut T {
         &mut self.0
     }
 }
-
-// unsafe impl<T> Uniform for Element<T>
-// where
-//     T: Uniform,
-// {
-//     type Align = Align16;
-//     type Std140 = Element<T::Std140>;
-
-//     fn std140(&self) -> Element<T::Std140> {
-//         Element(self.0.std140())
-//     }
-// }
 
 /// Array of `Element`s.
 /// This type implements useful traits for converting from unwrapped types.
@@ -74,6 +70,7 @@ impl<T, A> AsMut<A> for Array<T, A> {
 
 impl<T, A> Array<T, A>
 where
+    T: Uniform,
     A: AsMut<[Element<T>]> + AsRef<[Element<T>]>,
 {
     pub fn iter<'a>(&'a self) -> ArrayIter<SliceIter<'a, Element<T>>> {
@@ -87,6 +84,7 @@ where
 
 impl<'a, T, A> IntoIterator for &'a Array<T, A>
 where
+    T: Uniform,
     A: AsMut<[Element<T>]> + AsRef<[Element<T>]>,
 {
     type Item = &'a T;
@@ -99,6 +97,7 @@ where
 
 impl<'a, T, A> IntoIterator for &'a mut Array<T, A>
 where
+    T: Uniform,
     A: AsMut<[Element<T>]> + AsRef<[Element<T>]>,
 {
     type Item = &'a mut T;
@@ -113,7 +112,10 @@ where
 /// Iterate over references to inner values.
 pub struct ArrayIter<I>(I);
 
-impl<'a, T> Iterator for ArrayIter<SliceIter<'a, Element<T>>> {
+impl<'a, T> Iterator for ArrayIter<SliceIter<'a, Element<T>>>
+where
+    T: Uniform,
+{
     type Item = &'a T;
 
     fn next(&mut self) -> Option<&'a T> {
@@ -121,19 +123,28 @@ impl<'a, T> Iterator for ArrayIter<SliceIter<'a, Element<T>>> {
     }
 }
 
-impl<'a, T> ExactSizeIterator for ArrayIter<SliceIter<'a, Element<T>>> {
+impl<'a, T> ExactSizeIterator for ArrayIter<SliceIter<'a, Element<T>>>
+where
+    T: Uniform,
+{
     fn len(&self) -> usize {
         self.0.len()
     }
 }
 
-impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIter<'a, Element<T>>> {
+impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIter<'a, Element<T>>>
+where
+    T: Uniform,
+{
     fn next_back(&mut self) -> Option<&'a T> {
         self.0.next_back().map(|elem| &elem.0)
     }
 }
 
-impl<'a, T> Iterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
+impl<'a, T> Iterator for ArrayIter<SliceIterMut<'a, Element<T>>>
+where
+    T: Uniform,
+{
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<&'a mut T> {
@@ -141,32 +152,41 @@ impl<'a, T> Iterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
     }
 }
 
-impl<'a, T> ExactSizeIterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
+impl<'a, T> ExactSizeIterator for ArrayIter<SliceIterMut<'a, Element<T>>>
+where
+    T: Uniform,
+{
     fn len(&self) -> usize {
         self.0.len()
     }
 }
 
-impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIterMut<'a, Element<T>>> {
+impl<'a, T> DoubleEndedIterator for ArrayIter<SliceIterMut<'a, Element<T>>>
+where
+    T: Uniform,
+{
     fn next_back(&mut self) -> Option<&'a mut T> {
         self.0.next_back().map(|elem| &mut elem.0)
     }
 }
 
-#[macro_export]
 macro_rules! impl_array {
     ($size:tt) => {
-        impl<T, U> ArrayFrom<[T; $size]> for [U; $size]
+        impl<T, U, F> MapArray<[T; $size], F> for [U; $size]
         where
-            T: Into<U>,
+            F: FnMut(T) -> U,
         {
-            fn array_from(mut values: [T; $size]) -> Self {
+            fn map_array(mut values: [T; $size], mut f: F) -> Self {
                 use std::{mem::forget, ptr::{read, write}};
 
                 unsafe {
+                    // All elements of `result` is written.
+                    // Each element of `values` read once and then forgotten.
+                    // Hence safe in case `f` never panics.
+                    // TODO: Make it panic-safe.
                     let mut result: [U; $size] = ::std::mem::uninitialized();
                     for i in 0 .. $size {
-                        write(&mut result[i], read(&mut values[i]).into());
+                        write(&mut result[i], f(read(&mut values[i])));
                     }
                     forget(values);
                     result
@@ -179,89 +199,60 @@ macro_rules! impl_array {
             T: Into<U>,
         {
             fn from(values: [T; $size]) -> Self {
-                Array(ArrayFrom::array_from(values), PhantomData)
+                Array(MapArray::map_array(values, T::into), PhantomData)
             }
         }
 
         impl<T, U> From<[T; $size]> for Array<U, [Element<U>; $size]>
         where
             T: Into<U>,
+            U: Uniform,
         {
             fn from(values: [T; $size]) -> Self {
-                let values: [U; $size] = ArrayFrom::array_from(values);
-                Array(ArrayFrom::array_from(values), PhantomData)
+                let values: [U; $size] = MapArray::map_array(values, T::into);
+                Array(MapArray::map_array(values, U::into), PhantomData)
             }
         }
 
-        unsafe impl<T> Uniform for [T; $size]
+        impl<T> Uniform for [T; $size]
         where
             T: Uniform,
         {
             type Align = Align16;
             type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
 
+            fn align() -> Align16 { Align16 }
             fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
-                use std::{mem::{align_of, size_of, transmute, uninitialized}, ptr::{copy_nonoverlapping, write}};
-
+                use std::ptr::write;
                 unsafe {
-                    let mut result: [Element<T::Std140>; $size] = uninitialized();
-                    if size_of::<T>() == size_of::<Element<T::Std140>>() && align_of::<T>() == align_of::<Element<T::Std140>>() {
-                        copy_nonoverlapping(transmute::<_, &[Element<T::Std140>; $size]>(self), &mut result, 1);
-                    } else {
-                        for i in 0 .. $size {
-                            write(&mut result[i], Element(self[i].std140()));
-                        }
+                    // All elements of `result` is written.
+                    let mut result: [Element<T::Std140>; $size] = ::std::mem::uninitialized();
+                    for i in 0 .. $size {
+                        write(&mut result[i], self[i].std140().into());
                     }
                     Array(result, PhantomData)
                 }
             }
         }
 
-        unsafe impl<T> Uniform for [Element<T>; $size]
+        impl<T> Uniform for Array<T, [Element<T>; $size]>
         where
             T: Uniform,
         {
             type Align = Align16;
             type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
 
+            fn align() -> Align16 { Align16 }
             fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
-                use std::{mem::{align_of, size_of, transmute, uninitialized}, ptr::{copy_nonoverlapping, write}};
-
+                use std::ptr::write;
                 unsafe {
-                    let mut result: [Element<T::Std140>; $size] = uninitialized();
-                    if size_of::<Element<T>>() == size_of::<Element<T::Std140>>() && align_of::<Element<T>>() == align_of::<Element<T::Std140>>() {
-                        copy_nonoverlapping(transmute::<_, &[Element<T::Std140>; $size]>(self), &mut result, 1);
-                    } else {
-                        for i in 0 .. $size {
-                            write(&mut result[i], Element(self[i].0.std140()));
-                        }
+                    // All elements of `result` is written.
+                    let mut result: [Element<T::Std140>; $size] = ::std::mem::uninitialized();
+                    for i in 0 .. $size {
+                        write(&mut result[i], self.0[i].0.std140().into());
                     }
                     Array(result, PhantomData)
                 }
-            }
-        }
-
-        unsafe impl<T> Uniform for Array<T, [T; $size]>
-        where
-            T: Uniform,
-        {
-            type Align = Align16;
-            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
-
-            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
-                self.0.std140()
-            }
-        }
-
-        unsafe impl<T> Uniform for Array<T, [Element<T>; $size]>
-        where
-            T: Uniform,
-        {
-            type Align = Align16;
-            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
-
-            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
-                self.0.std140()
             }
         }
     }

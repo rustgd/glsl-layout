@@ -50,9 +50,21 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
                 #aligned_fields,
             )*}
 
-            unsafe impl _glsl_layout::Uniform for #name {
+            impl _glsl_layout::Uniform for #rname {
                 type Align = _glsl_layout::align::Align16;
                 type Std140 = #rname;
+
+                fn align() -> _glsl_layout::align::Align16 { _glsl_layout::align::Align16 }
+                fn std140(&self) -> #rname {
+                    self.clone()
+                }
+            }
+
+            impl _glsl_layout::Uniform for #name {
+                type Align = _glsl_layout::align::Align16;
+                type Std140 = #rname;
+
+                fn align() -> _glsl_layout::align::Align16 { _glsl_layout::align::Align16 }
                 fn std140(&self) -> #rname {
                     #rname {
                         #(#field_names: self.#field_names2.std140(),)*
