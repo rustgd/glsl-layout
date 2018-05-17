@@ -14,6 +14,9 @@ pub fn uniform(input: TokenStream) -> TokenStream {
 }
 
 fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
+    #[cfg(feature="gfx")]
+    use std::iter::once;
+
     let name = &ast.ident;
 
     let rname = syn::Ident::from(format!("LayoutStd140{}", name));
