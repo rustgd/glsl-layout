@@ -12,5 +12,5 @@ gfx = ["gfx_core", "glsl-layout-derive/gfx"]
 
 [dependencies]
 cgmath = { version = "0.16", optional = true }
-glsl-layout-derive = { path = "glsl-layout-derive" }
+glsl-layout-derive = { version = "0.1.0", path = "glsl-layout-derive" }
 gfx_core = { version = "0.8", optional = true }
