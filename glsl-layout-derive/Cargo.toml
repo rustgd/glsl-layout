@@ -2,6 +2,10 @@
 name = "glsl-layout-derive"
 version = "0.1.0"
 authors = ["Zakarum <scareaangel@gmail.com>"]
+description = "Custom derive for `glsl-layout` crate."
+license = "MIT/Apache-2.0"
+repository = "https://github.com/rustgd/glsl-layout"
+keywords = ["graphics", "glsl", "gamedev"]
 
 [lib]
 proc-macro = true
