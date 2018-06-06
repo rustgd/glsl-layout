@@ -98,10 +98,3 @@ pub use vec::*;
 extern crate glsl_layout_derive;
 #[doc(hidden)]
 pub use glsl_layout_derive::*;
-
-#[cfg(feature = "gfx")]
-extern crate gfx_core;
-
-#[doc(hidden)]
-#[cfg(feature = "gfx")]
-pub use gfx_core::memory::Pod;

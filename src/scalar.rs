@@ -1,12 +1,25 @@
-#[cfg(feature = "gfx")]
-use gfx_core::memory::Pod;
-
 use align::{Align4, Align8};
 use uniform::{Std140, Uniform};
+
+macro_rules! impl_scalar {
+    ($type:ty : $align:tt) => {
+        unsafe impl Std140 for $type {}
+
+        impl Uniform for $type {
+            type Align = $align;
+            type Std140 = $type;
+
+            fn std140(&self) -> $type {
+                *self
+            }
+        }
+    }
+}
 
 /// Boolean value.
 #[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct boolean(u32);
+impl_scalar!(boolean : Align4);
 
 impl boolean {
     /// Create `boolean` from `bool`.
@@ -31,87 +44,18 @@ impl From<boolean> for bool {
     }
 }
 
-unsafe impl Std140 for boolean {}
-
-#[cfg(feature = "gfx")]
-unsafe impl Pod for boolean {}
-
-impl Uniform for boolean {
-    type Align = Align4;
-    type Std140 = boolean;
-
-    fn align() -> Align4 {
-        Align4
-    }
-    fn std140(&self) -> boolean {
-        *self
-    }
-}
-
 /// Signed integer value.
 pub type int = i32;
-
-unsafe impl Std140 for int {}
-
-impl Uniform for int {
-    type Align = Align4;
-    type Std140 = int;
-
-    fn align() -> Align4 {
-        Align4
-    }
-    fn std140(&self) -> int {
-        *self
-    }
-}
+impl_scalar!(int : Align4);
 
 /// Unsigned integer value.
 pub type uint = u32;
-
-unsafe impl Std140 for uint {}
-
-impl Uniform for uint {
-    type Align = Align4;
-    type Std140 = uint;
-
-    fn align() -> Align4 {
-        Align4
-    }
-    fn std140(&self) -> uint {
-        *self
-    }
-}
+impl_scalar!(uint : Align4);
 
 /// floating-point value.
 pub type float = f32;
-
-unsafe impl Std140 for float {}
-
-impl Uniform for float {
-    type Align = Align4;
-    type Std140 = float;
-
-    fn align() -> Align4 {
-        Align4
-    }
-    fn std140(&self) -> float {
-        *self
-    }
-}
+impl_scalar!(float : Align4);
 
 /// Double-precision floating-point value.
 pub type double = f64;
-
-unsafe impl Std140 for double {}
-
-impl Uniform for double {
-    type Align = Align8;
-    type Std140 = double;
-
-    fn align() -> Align8 {
-        Align8
-    }
-    fn std140(&self) -> double {
-        *self
-    }
-}
+impl_scalar!(double : Align8);

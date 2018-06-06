@@ -1,6 +1,6 @@
 [package]
 name = "glsl-layout"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Zakarum <scareaangel@gmail.com>"]
 description = "Provides data types and traits to build structures ready to upload into UBO."
 license = "MIT/Apache-2.0"
@@ -9,9 +9,7 @@ keywords = ["graphics", "glsl", "gamedev"]
 
 [features]
 bigger-arrays = []
-gfx = ["gfx_core", "glsl-layout-derive/gfx"]
 
 [dependencies]
 cgmath = { version = "0.16", optional = true }
-glsl-layout-derive = { version = "0.1.1", path = "glsl-layout-derive" }
-gfx_core = { version = "0.8", optional = true }
+glsl-layout-derive = { version = "0.2", path = "glsl-layout-derive" }

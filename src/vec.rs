@@ -1,6 +1,3 @@
-#[cfg(feature = "gfx")]
-use gfx_core::memory::Pod;
-
 use align::{Align16, Align32, Align8};
 use array::MapArray;
 use scalar::{boolean, double, float, int, uint};
@@ -43,16 +40,10 @@ macro_rules! implement_vec {
 
         unsafe impl Std140 for $vec {}
 
-        #[cfg(feature = "gfx")]
-        unsafe impl Pod for $vec {}
-
         impl Uniform for $vec {
             type Align = $align;
             type Std140 = $vec;
 
-            fn align() -> $align {
-                $align
-            }
             fn std140(&self) -> $vec {
                 *self
             }

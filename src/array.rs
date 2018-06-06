@@ -1,8 +1,5 @@
 use std::{marker::PhantomData, slice::{Iter as SliceIter, IterMut as SliceIterMut}};
 
-#[cfg(feature = "gfx")]
-use gfx_core::memory::Pod;
-
 use align::Align16;
 use uniform::{Std140, Uniform};
 
@@ -21,7 +18,7 @@ where
     T: Uniform,
 {
     fn from(values: T) -> Self {
-        Element(values, T::align())
+        Element(values, Default::default())
     }
 }
 
@@ -220,9 +217,6 @@ macro_rules! impl_array {
             type Align = Align16;
             type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
 
-            fn align() -> Align16 {
-                Align16
-            }
             fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
                 use std::ptr::write;
                 unsafe {
@@ -243,9 +237,6 @@ macro_rules! impl_array {
             type Align = Align16;
             type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
 
-            fn align() -> Align16 {
-                Align16
-            }
             fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
                 use std::ptr::write;
                 unsafe {
@@ -264,13 +255,6 @@ macro_rules! impl_array {
             T: Std140,
         {
         }
-
-        #[cfg(feature = "gfx")]
-        unsafe impl<T> Pod for Array<T, [Element<T>; $size]>
-        where
-            T: Std140,
-        {
-        }
     };
 }
 
@@ -279,34 +263,34 @@ impl_array!(001);
 impl_array!(002);
 impl_array!(003);
 impl_array!(004);
-// impl_array!(005);
-// impl_array!(006);
-// impl_array!(007);
-// impl_array!(008);
-// impl_array!(009);
-// impl_array!(010);
-// impl_array!(011);
-// impl_array!(012);
-// impl_array!(013);
-// impl_array!(014);
-// impl_array!(015);
-// impl_array!(016);
-// impl_array!(017);
-// impl_array!(018);
-// impl_array!(019);
-// impl_array!(020);
-// impl_array!(021);
-// impl_array!(022);
-// impl_array!(023);
-// impl_array!(024);
-// impl_array!(025);
-// impl_array!(026);
-// impl_array!(027);
-// impl_array!(028);
-// impl_array!(029);
-// impl_array!(030);
-// impl_array!(031);
-// impl_array!(032);
+impl_array!(005);
+impl_array!(006);
+impl_array!(007);
+impl_array!(008);
+impl_array!(009);
+impl_array!(010);
+impl_array!(011);
+impl_array!(012);
+impl_array!(013);
+impl_array!(014);
+impl_array!(015);
+impl_array!(016);
+impl_array!(017);
+impl_array!(018);
+impl_array!(019);
+impl_array!(020);
+impl_array!(021);
+impl_array!(022);
+impl_array!(023);
+impl_array!(024);
+impl_array!(025);
+impl_array!(026);
+impl_array!(027);
+impl_array!(028);
+impl_array!(029);
+impl_array!(030);
+impl_array!(031);
+impl_array!(032);
 
 #[cfg(feature = "bigger-arrays")]
 mod impl_bigger_arrays {

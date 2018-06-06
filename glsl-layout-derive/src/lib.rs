@@ -14,9 +14,6 @@ pub fn uniform(input: TokenStream) -> TokenStream {
 }
 
 fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
-    #[cfg(feature="gfx")]
-    use std::iter::once;
-
     let name = &ast.ident;
 
     let rname = syn::Ident::from(format!("LayoutStd140{}", name));
@@ -42,32 +39,6 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
 
     let dummy = syn::Ident::from(format!("_GLSL_LAYOUT_{}", name));
 
-    #[cfg(feature="gfx")]
-    let pod = (Some(syn::token::Unsafe::default()), Some((None, syn::Path {
-                leading_colon: None,
-                segments: once(syn::PathSegment::from("_glsl_layout"))
-                    .chain(once("Pod".into()))
-                    .collect(),
-            }, syn::token::For::default())));
-
-    #[cfg(not(feature="gfx"))]
-    let pod = (None, None);
-
-    let rname_impl = syn::ItemImpl {
-        attrs: Vec::new(),
-        defaultness: None,
-        unsafety: pod.0,
-        impl_token: syn::token::Impl::default(),
-        generics: syn::Generics::default(),
-        trait_: pod.1,
-        self_ty: Box::new(syn::Type::from(syn::TypePath {
-            qself: None,
-            path: syn::Path::from(rname.clone()),
-        })),
-        brace_token: syn::token::Brace::default(),
-        items: Vec::new(),
-    };
-
     quote! {
         #[allow(bad_style)]
         const #dummy: () = {
@@ -79,15 +50,12 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
                 #aligned_fields,
             )*}
 
-            #rname_impl
-
             unsafe impl _glsl_layout::Std140 for #rname {}
 
             impl _glsl_layout::Uniform for #rname {
                 type Align = _glsl_layout::align::Align16;
                 type Std140 = #rname;
 
-                fn align() -> _glsl_layout::align::Align16 { _glsl_layout::align::Align16 }
                 fn std140(&self) -> #rname {
                     self.clone()
                 }
@@ -97,7 +65,6 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
                 type Align = _glsl_layout::align::Align16;
                 type Std140 = #rname;
 
-                fn align() -> _glsl_layout::align::Align16 { _glsl_layout::align::Align16 }
                 fn std140(&self) -> #rname {
                     #rname {
                         #(#field_names: self.#field_names2.std140(),)*
