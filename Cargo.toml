@@ -1,6 +1,6 @@
 [package]
 name = "glsl-layout"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Zakarum <scareaangel@gmail.com>"]
 description = "Provides data types and traits to build structures ready to upload into UBO."
 license = "MIT/Apache-2.0"
@@ -12,4 +12,4 @@ bigger-arrays = []
 
 [dependencies]
 cgmath = { version = "0.16", optional = true }
-glsl-layout-derive = { version = "0.2", path = "glsl-layout-derive" }
+glsl-layout-derive = { version = "0.3", path = "glsl-layout-derive" }
