@@ -1,22 +1,26 @@
 #![recursion_limit="128"]
 
 extern crate proc_macro;
+extern crate proc_macro2;
 extern crate syn;
 #[macro_use]
 extern crate quote;
 
-use proc_macro::TokenStream;
+use proc_macro2::Span;
 
 #[proc_macro_derive(Uniform)]
-pub fn uniform(input: TokenStream) -> TokenStream {
-    let ast = syn::parse(input).unwrap();
-    impl_uniform(&ast).into()
+pub fn uniform(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = proc_macro2::TokenStream::from(input);
+
+    let ast = syn::parse2(input).unwrap();
+
+    proc_macro::TokenStream::from(impl_uniform(&ast))
 }
 
-fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
+fn impl_uniform(ast: &syn::DeriveInput) -> proc_macro2::TokenStream {
     let name = &ast.ident;
 
-    let rname = syn::Ident::from(format!("LayoutStd140{}", name));
+    let rname = format_ident!("LayoutStd140{}", name);
     
     let fields = match &ast.data {
         syn::Data::Struct(syn::DataStruct {
@@ -34,10 +38,10 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
         vec![a, f]
     });
 
-    let field_names = fields.iter().map(|field| field.ident.unwrap());
-    let field_names2 = fields.iter().map(|field| field.ident.unwrap());
+    let field_names = fields.iter().map(|field| field.ident.as_ref().unwrap());
+    let field_names2 = fields.iter().map(|field| field.ident.as_ref().unwrap());
 
-    let dummy = syn::Ident::from(format!("_GLSL_LAYOUT_{}", name));
+    let dummy = format_ident!("_GLSL_LAYOUT_{}", name);
 
     quote! {
         #[allow(bad_style)]
@@ -77,10 +81,10 @@ fn impl_uniform(ast: &syn::DeriveInput) -> quote::Tokens {
 }
 
 fn aligned_field(field: &syn::Field) -> (syn::Field, syn::Field) {
-    let name = field.ident.unwrap();
+    let name = field.ident.as_ref().unwrap();
     let align = syn::Field {
         ty: syn::Type::Path(align_type_for(&field.ty)),
-        ident: Some(format!("_align_{}", name).into()),
+        ident: Some(format_ident!("_align_{}", name)),
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
         colon_token: Some(Default::default()),
@@ -106,9 +110,9 @@ fn align_type_for(aligned: &syn::Type) -> syn::TypePath {
         }),
         path: syn::Path {
             leading_colon: None,
-            segments: once(syn::PathSegment::from("_glsl_layout"))
-                .chain(once("Uniform".into()))
-                .chain(once("Align".into()))
+            segments: once(syn::PathSegment::from(syn::Ident::new("_glsl_layout", Span::call_site())))
+                .chain(once(syn::Ident::new("Uniform", Span::call_site()).into()))
+                .chain(once(syn::Ident::new("Align", Span::call_site()).into()))
                 .collect(),
         }
     }
@@ -126,9 +130,9 @@ fn std140_type_for(aligned: &syn::Type) -> syn::TypePath {
         }),
         path: syn::Path {
             leading_colon: None,
-            segments: once(syn::PathSegment::from("_glsl_layout"))
-                .chain(once("Uniform".into()))
-                .chain(once("Std140".into()))
+            segments: once(syn::PathSegment::from(syn::Ident::new("_glsl_layout", Span::call_site())))
+                .chain(once(syn::Ident::new("Uniform".into(), Span::call_site()).into()))
+                .chain(once(syn::Ident::new("Std140".into(), Span::call_site()).into()))
                 .collect(),
         }
     }
