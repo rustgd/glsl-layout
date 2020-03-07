@@ -46,17 +46,15 @@ fn impl_uniform(ast: &syn::DeriveInput) -> proc_macro2::TokenStream {
     quote! {
         #[allow(bad_style)]
         const #dummy: () = {
-            extern crate glsl_layout as _glsl_layout;
-
             #[repr(C, align(16))]
             #[derive(Clone, Copy, Debug, Default)]
             pub struct #rname {#(
                 #aligned_fields,
             )*}
 
-            unsafe impl _glsl_layout::Std140 for #rname {}
+            unsafe impl glsl_layout::Std140 for #rname {}
 
-            impl _glsl_layout::Uniform for #rname {
+            impl glsl_layout::Uniform for #rname {
                 type Align = _glsl_layout::align::Align16;
                 type Std140 = #rname;
 
@@ -65,8 +63,8 @@ fn impl_uniform(ast: &syn::DeriveInput) -> proc_macro2::TokenStream {
                 }
             }
 
-            impl _glsl_layout::Uniform for #name {
-                type Align = _glsl_layout::align::Align16;
+            impl glsl_layout::Uniform for #name {
+                type Align = glsl_layout::align::Align16;
                 type Std140 = #rname;
 
                 fn std140(&self) -> #rname {
@@ -110,7 +108,7 @@ fn align_type_for(aligned: &syn::Type) -> syn::TypePath {
         }),
         path: syn::Path {
             leading_colon: None,
-            segments: once(syn::PathSegment::from(syn::Ident::new("_glsl_layout", Span::call_site())))
+            segments: once(syn::PathSegment::from(syn::Ident::new("glsl_layout", Span::call_site())))
                 .chain(once(syn::Ident::new("Uniform", Span::call_site()).into()))
                 .chain(once(syn::Ident::new("Align", Span::call_site()).into()))
                 .collect(),
@@ -130,7 +128,7 @@ fn std140_type_for(aligned: &syn::Type) -> syn::TypePath {
         }),
         path: syn::Path {
             leading_colon: None,
-            segments: once(syn::PathSegment::from(syn::Ident::new("_glsl_layout", Span::call_site())))
+            segments: once(syn::PathSegment::from(syn::Ident::new("glsl_layout", Span::call_site())))
                 .chain(once(syn::Ident::new("Uniform".into(), Span::call_site()).into()))
                 .chain(once(syn::Ident::new("Std140".into(), Span::call_site()).into()))
                 .collect(),
