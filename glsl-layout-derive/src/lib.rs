@@ -55,7 +55,7 @@ fn impl_uniform(ast: &syn::DeriveInput) -> proc_macro2::TokenStream {
             unsafe impl glsl_layout::Std140 for #rname {}
 
             impl glsl_layout::Uniform for #rname {
-                type Align = _glsl_layout::align::Align16;
+                type Align = glsl_layout::align::Align16;
                 type Std140 = #rname;
 
                 fn std140(&self) -> #rname {
