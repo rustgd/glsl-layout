@@ -1,5 +1,5 @@
-use align::{Align4, Align8};
-use uniform::{Std140, Uniform};
+use crate::align::{Align4, Align8};
+use crate::uniform::{Std140, Uniform};
 
 macro_rules! impl_scalar {
     ($type:ty : $align:tt) => {
@@ -13,13 +13,13 @@ macro_rules! impl_scalar {
                 *self
             }
         }
-    }
+    };
 }
 
 /// Boolean value.
 #[derive(Clone, Copy, Debug, Default, PartialOrd, PartialEq, Ord, Eq, Hash)]
 pub struct boolean(u32);
-impl_scalar!(boolean : Align4);
+impl_scalar!(boolean: Align4);
 
 impl boolean {
     /// Create `boolean` from `bool`.
@@ -46,16 +46,16 @@ impl From<boolean> for bool {
 
 /// Signed integer value.
 pub type int = i32;
-impl_scalar!(int : Align4);
+impl_scalar!(int: Align4);
 
 /// Unsigned integer value.
 pub type uint = u32;
-impl_scalar!(uint : Align4);
+impl_scalar!(uint: Align4);
 
 /// floating-point value.
 pub type float = f32;
-impl_scalar!(float : Align4);
+impl_scalar!(float: Align4);
 
 /// Double-precision floating-point value.
 pub type double = f64;
-impl_scalar!(double : Align8);
+impl_scalar!(double: Align8);

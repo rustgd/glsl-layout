@@ -1,15 +1,20 @@
 [package]
 name = "glsl-layout"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Zakarum <scareaangel@gmail.com>"]
 description = "Provides data types and traits to build structures ready to upload into UBO."
 license = "MIT/Apache-2.0"
 repository = "https://github.com/rustgd/glsl-layout"
 keywords = ["graphics", "glsl", "gamedev"]
+edition = "2018"
 
 [features]
 bigger-arrays = []
 
 [dependencies]
 cgmath = { version = "0.16", optional = true }
-glsl-layout-derive = { version = "0.3", path = "glsl-layout-derive" }
+nalgebra = { version = "0.20", optional = true }
+glsl-layout-derive = { path = "glsl-layout-derive" }
+
+[workspace]
+members = ["glsl-layout-derive"]

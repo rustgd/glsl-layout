@@ -1,4 +1,4 @@
-#![recursion_limit="128"]
+#![recursion_limit = "128"]
 
 extern crate proc_macro;
 extern crate proc_macro2;
@@ -21,13 +21,10 @@ fn impl_uniform(ast: &syn::DeriveInput) -> proc_macro2::TokenStream {
     let name = &ast.ident;
 
     let rname = format_ident!("LayoutStd140{}", name);
-    
+
     let fields = match &ast.data {
         syn::Data::Struct(syn::DataStruct {
-            fields: syn::Fields::Named(syn::FieldsNamed {
-                named,
-                ..
-            }),
+            fields: syn::Fields::Named(syn::FieldsNamed { named, .. }),
             ..
         }) => named,
         _ => panic!(),
@@ -108,11 +105,14 @@ fn align_type_for(aligned: &syn::Type) -> syn::TypePath {
         }),
         path: syn::Path {
             leading_colon: None,
-            segments: once(syn::PathSegment::from(syn::Ident::new("glsl_layout", Span::call_site())))
-                .chain(once(syn::Ident::new("Uniform", Span::call_site()).into()))
-                .chain(once(syn::Ident::new("Align", Span::call_site()).into()))
-                .collect(),
-        }
+            segments: once(syn::PathSegment::from(syn::Ident::new(
+                "glsl_layout",
+                Span::call_site(),
+            )))
+            .chain(once(syn::Ident::new("Uniform", Span::call_site()).into()))
+            .chain(once(syn::Ident::new("Align", Span::call_site()).into()))
+            .collect(),
+        },
     }
 }
 
@@ -128,10 +128,17 @@ fn std140_type_for(aligned: &syn::Type) -> syn::TypePath {
         }),
         path: syn::Path {
             leading_colon: None,
-            segments: once(syn::PathSegment::from(syn::Ident::new("glsl_layout", Span::call_site())))
-                .chain(once(syn::Ident::new("Uniform".into(), Span::call_site()).into()))
-                .chain(once(syn::Ident::new("Std140".into(), Span::call_site()).into()))
-                .collect(),
-        }
+            segments: once(syn::PathSegment::from(syn::Ident::new(
+                "glsl_layout",
+                Span::call_site(),
+            )))
+            .chain(once(
+                syn::Ident::new("Uniform".into(), Span::call_site()).into(),
+            ))
+            .chain(once(
+                syn::Ident::new("Std140".into(), Span::call_site()).into(),
+            ))
+            .collect(),
+        },
     }
 }

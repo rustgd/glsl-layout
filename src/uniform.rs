@@ -1,12 +1,9 @@
-
 /// Special marker trait implemented only for `std140` types.
 pub unsafe trait Std140: Sized + Uniform<Std140 = Self> {
     /// Convert to bytes-slice.
     fn as_raw(&self) -> &[u8] {
-        use std::{slice::from_raw_parts, mem::size_of};
-        unsafe {
-            from_raw_parts(self as *const Self as *const u8, size_of::<Self>())
-        }
+        use std::{mem::size_of, slice::from_raw_parts};
+        unsafe { from_raw_parts(self as *const Self as *const u8, size_of::<Self>()) }
     }
 }
 

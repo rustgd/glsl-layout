@@ -87,6 +87,9 @@ mod uniform;
 #[cfg(feature = "cgmath")]
 mod cgmath;
 
+#[cfg(feature = "nalgebra")]
+mod nalgebra;
+
 pub use array::*;
 pub use mat::*;
 pub use scalar::*;
@@ -98,3 +101,25 @@ pub use vec::*;
 extern crate glsl_layout_derive;
 #[doc(hidden)]
 pub use glsl_layout_derive::*;
+
+#[test]
+fn test_derive() {
+    use crate as glsl_layout;
+    #[derive(Copy, Clone, Uniform)]
+    struct Test {
+        a: [u32; 3],
+        b: vec2,
+        c: dmat4x3,
+    }
+}
+
+#[test]
+fn test_array() {
+    use crate as glsl_layout;
+    #[derive(Copy, Clone, Uniform)]
+    struct Test {
+        a: [u32; 3],
+        b: vec2,
+        c: [dmat4x3; 32],
+    }
+}
