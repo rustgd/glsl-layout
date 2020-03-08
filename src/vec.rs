@@ -1,7 +1,7 @@
-use align::{Align16, Align32, Align8};
-use array::MapArray;
-use scalar::{boolean, double, float, int, uint};
-use uniform::{Std140, Uniform};
+use crate::align::{Align16, Align32, Align8};
+use crate::array::MapArray;
+use crate::scalar::{boolean, double, float, int, uint};
+use crate::uniform::{Std140, Uniform};
 
 macro_rules! implement_vec {
     ($vec:ident => [$type:ty; $size:tt]: $align:tt) => {

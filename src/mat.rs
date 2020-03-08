@@ -1,7 +1,9 @@
-use vec::{bvec2, bvec3, bvec4, dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4,
-          vec2, vec3, vec4};
+use crate::vec::{
+    bvec2, bvec3, bvec4, dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4, vec2, vec3,
+    vec4,
+};
 
-use array::{Array, Element};
+use crate::array::{Array, Element};
 
 /// Matrix of 2 x 2 boolean values.
 pub type bmat2x2 = Array<bvec2, [Element<bvec2>; 2]>;
