@@ -185,12 +185,16 @@ macro_rules! impl_array {
                     // Each element of `values` read once and then forgotten.
                     // Hence safe in case `f` never panics.
                     // TODO: Make it panic-safe.
-                    let mut result: [U; $size] = ::std::mem::MaybeUninit::zeroed().assume_init();
+                    let mut result: ::std::mem::MaybeUninit<[U; $size]> =
+                        ::std::mem::MaybeUninit::zeroed();
                     for i in 0..$size {
-                        write(&mut result[i], f(read(&mut values[i])));
+                        write(
+                            result.as_mut_ptr().cast::<U>().add(i),
+                            f(read(&mut values[i])),
+                        );
                     }
                     forget(values);
-                    result
+                    result.assume_init()
                 }
             }
         }
@@ -226,12 +230,15 @@ macro_rules! impl_array {
                 use std::ptr::write;
                 unsafe {
                     // All elements of `result` is written.
-                    let mut result: [Element<T::Std140>; $size] =
-                        ::std::mem::MaybeUninit::zeroed().assume_init();
+                    let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; $size]> =
+                        ::std::mem::MaybeUninit::zeroed();
                     for i in 0..$size {
-                        write(&mut result[i], self[i].std140().into());
+                        write(
+                            result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
+                            self[i].std140().into(),
+                        );
                     }
-                    Array(result, PhantomData)
+                    Array(result.assume_init(), PhantomData)
                 }
             }
         }
@@ -247,12 +254,15 @@ macro_rules! impl_array {
                 use std::ptr::write;
                 unsafe {
                     // All elements of `result` is written.
-                    let mut result: [Element<T::Std140>; $size] =
-                        ::std::mem::MaybeUninit::zeroed().assume_init();
+                    let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; $size]> =
+                        ::std::mem::MaybeUninit::zeroed();
                     for i in 0..$size {
-                        write(&mut result[i], self.0[i].0.std140().into());
+                        write(
+                            result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
+                            self.0[i].0.std140().into(),
+                        );
                     }
-                    Array(result, PhantomData)
+                    Array(result.assume_init(), PhantomData)
                 }
             }
         }
