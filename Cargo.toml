@@ -12,7 +12,7 @@ edition = "2018"
 bigger-arrays = []
 
 [dependencies]
-cgmath = { version = "0.16", optional = true }
+cgmath = { version = "0.17", optional = true }
 nalgebra = { version = "0.20", optional = true }
 glsl-layout-derive = { path = "glsl-layout-derive" }
 
