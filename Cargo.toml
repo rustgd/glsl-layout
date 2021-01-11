@@ -1,7 +1,7 @@
 [package]
 name = "glsl-layout"
 version = "0.4.0"
-authors = ["Zakarum <scareaangel@gmail.com>"]
+authors = ["Zakarum <zakarumych@ya.ru>"]
 description = "Provides data types and traits to build structures ready to upload into UBO."
 license = "MIT/Apache-2.0"
 repository = "https://github.com/rustgd/glsl-layout"
@@ -12,9 +12,9 @@ edition = "2018"
 bigger-arrays = []
 
 [dependencies]
-cgmath = { version = "0.17", optional = true }
-nalgebra = { version = "0.20", optional = true }
-glsl-layout-derive = { path = "glsl-layout-derive" }
+cgmath = { version = "0.18", optional = true }
+nalgebra = { version = "0.24", optional = true }
+glsl-layout-derive = { path = "glsl-layout-derive", version = "0.4.0" }
 
 [workspace]
 members = ["glsl-layout-derive"]
