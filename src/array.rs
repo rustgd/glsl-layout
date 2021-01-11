@@ -174,26 +174,24 @@ macro_rules! impl_array {
         where
             F: FnMut(T) -> U,
         {
-            fn map_array(mut values: [T; $size], mut f: F) -> Self {
+            fn map_array(values: [T; $size], mut f: F) -> Self {
                 use std::{
-                    mem::forget,
+                    mem::{ManuallyDrop, MaybeUninit},
                     ptr::{read, write},
                 };
 
+                // Use `ManuallyDrop<_>` to guard against panic safety issue.
+                // Upon panic in `f`, `values` isn't dropped
+                // and thus item copied by `read()` is dropped only once.
+                let mut values = ManuallyDrop::new(values);
                 unsafe {
-                    // All elements of `result` is written.
-                    // Each element of `values` read once and then forgotten.
-                    // Hence safe in case `f` never panics.
-                    // TODO: Make it panic-safe.
-                    let mut result: ::std::mem::MaybeUninit<[U; $size]> =
-                        ::std::mem::MaybeUninit::zeroed();
+                    let mut result: MaybeUninit<[U; $size]> = MaybeUninit::zeroed();
                     for i in 0..$size {
                         write(
                             result.as_mut_ptr().cast::<U>().add(i),
                             f(read(&mut values[i])),
                         );
                     }
-                    forget(values);
                     result.assume_init()
                 }
             }
