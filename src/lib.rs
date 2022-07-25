@@ -90,6 +90,9 @@ mod cgmath;
 #[cfg(feature = "nalgebra")]
 mod nalgebra;
 
+#[cfg(feature = "glam")]
+mod glam;
+
 pub use array::*;
 pub use mat::*;
 pub use scalar::*;
