@@ -1,5 +1,6 @@
 use crate::mat::{dmat2, dmat3, dmat4, mat2, mat3, mat4};
 use crate::scalar::{double, float, int, uint};
+use crate::uniform::Uniform;
 use crate::vec::{dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4, vec2, vec3, vec4};
 use glam::{
     DMat2, DMat3, DMat4, DVec2, DVec3, DVec4, IVec2, IVec3, IVec4, Mat2, Mat3, Mat4, UVec2, UVec3,
@@ -14,6 +15,15 @@ macro_rules! impl_vec_from_glam {
                 array.into()
             }
         }
+
+        impl Uniform for $glam {
+            type Align = <$vec as Uniform>::Align;
+            type Std140 = $vec;
+
+            fn std140(&self) -> Self::Std140 {
+                Self::Std140::from(*self)
+            }
+        }
     };
 }
 
@@ -21,8 +31,16 @@ macro_rules! impl_mat_from_glam {
     ($mat:ident : $glam:ident => [$type:ty; $size:tt]) => {
         impl From<$glam> for $mat {
             fn from(value: $glam) -> Self {
-                let array: [[$type; $size]; $size] = value.to_cols_array_2d();
-                array.into()
+                $mat::from(value.to_cols_array_2d())
+            }
+        }
+
+        impl Uniform for $glam {
+            type Align = <$mat as Uniform>::Align;
+            type Std140 = $mat;
+
+            fn std140(&self) ->Self::Std140 {
+                Self::Std140::from(self.to_cols_array_2d())
             }
         }
     };
@@ -49,10 +67,18 @@ impl_mat_from_glam!(dmat3 : DMat3 => [double; 3]);
 impl_mat_from_glam!(dmat4 : DMat4 => [double; 4]);
 
 #[test]
-fn test_cgmath() {
-    use crate::mat::mat2;
-    use crate::vec::dvec3;
+pub fn test_glam() {
+    use crate::uniform::Std140;
 
-    let _: dvec3 = DVec3::new(1.0, 2.0, 3.0).into();
-    let _: mat2 = Mat2::IDENTITY.into();
+    let v3: vec3 = [1.0, 2.0, 3.0].into();
+    let gv3_to_v3: vec3 = Vec3::new(1.0, 2.0, 3.0).into();
+    let gv3 = Vec3::new(1.0, 2.0, 3.0);
+    assert_eq!(v3.std140().as_raw(), gv3.std140().as_raw());
+    assert_eq!(gv3.std140().as_raw(), gv3_to_v3.std140().as_raw());
+
+    let m3: mat3 = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]].into();
+    let gm3_to_m3: mat3 = Mat3::IDENTITY.into();
+    let gm3 = Mat3::IDENTITY;
+    assert_eq!(m3.std140().as_raw(), gm3.std140().as_raw());
+    assert_eq!(gm3.std140().as_raw(), gm3_to_m3.std140().as_raw());
 }
