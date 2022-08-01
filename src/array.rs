@@ -168,137 +168,149 @@ where
     }
 }
 
-macro_rules! impl_array {
-    ($size:expr) => {
-        impl<T, U, F> MapArray<[T; $size], F> for [U; $size]
-        where
-            F: FnMut(T) -> U,
-        {
-            fn map_array(values: [T; $size], mut f: F) -> Self {
-                use std::{
-                    mem::{ManuallyDrop, MaybeUninit},
-                    ptr::{read, write},
-                };
+impl<T, U, F, const N: usize> MapArray<[T; N], F> for [U; N]
+where
+    F: FnMut(T) -> U,
+{
+    fn map_array(values: [T; N], mut f: F) -> Self {
+        use std::{
+            mem::{ManuallyDrop, MaybeUninit},
+            ptr::{read, write},
+        };
 
-                // Use `ManuallyDrop<_>` to guard against panic safety issue.
-                // Upon panic in `f`, `values` isn't dropped
-                // and thus item copied by `read()` is dropped only once.
-                let mut values = ManuallyDrop::new(values);
-                unsafe {
-                    let mut result: MaybeUninit<[U; $size]> = MaybeUninit::zeroed();
-                    for i in 0..$size {
-                        write(
-                            result.as_mut_ptr().cast::<U>().add(i),
-                            f(read(&mut values[i])),
-                        );
-                    }
-                    result.assume_init()
-                }
+        // Use `ManuallyDrop<_>` to guard against panic safety issue.
+        // Upon panic in `f`, `values` isn't dropped
+        // and thus item copied by `read()` is dropped only once.
+        let mut values = ManuallyDrop::new(values);
+        unsafe {
+            let mut result: MaybeUninit<[U; N]> = MaybeUninit::zeroed();
+            for i in 0..N {
+                write(
+                    result.as_mut_ptr().cast::<U>().add(i),
+                    f(read(&mut values[i])),
+                );
             }
+            result.assume_init()
         }
-
-        impl<T, U> From<[T; $size]> for Array<U, [U; $size]>
-        where
-            T: Into<U>,
-        {
-            fn from(values: [T; $size]) -> Self {
-                Array(MapArray::map_array(values, T::into), PhantomData)
-            }
-        }
-
-        impl<T, U> From<[T; $size]> for Array<U, [Element<U>; $size]>
-        where
-            T: Into<U>,
-            U: Uniform,
-        {
-            fn from(values: [T; $size]) -> Self {
-                let values: [U; $size] = MapArray::map_array(values, T::into);
-                Array(MapArray::map_array(values, U::into), PhantomData)
-            }
-        }
-
-        impl<T> Uniform for [T; $size]
-        where
-            T: Uniform,
-        {
-            type Align = Align16;
-            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
-
-            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
-                use std::ptr::write;
-                unsafe {
-                    // All elements of `result` is written.
-                    let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; $size]> =
-                        ::std::mem::MaybeUninit::zeroed();
-                    for i in 0..$size {
-                        write(
-                            result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
-                            self[i].std140().into(),
-                        );
-                    }
-                    Array(result.assume_init(), PhantomData)
-                }
-            }
-        }
-
-        impl<T> Uniform for Array<T, [Element<T>; $size]>
-        where
-            T: Uniform,
-        {
-            type Align = Align16;
-            type Std140 = Array<T::Std140, [Element<T::Std140>; $size]>;
-
-            fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; $size]> {
-                use std::ptr::write;
-                unsafe {
-                    // All elements of `result` is written.
-                    let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; $size]> =
-                        ::std::mem::MaybeUninit::zeroed();
-                    for i in 0..$size {
-                        write(
-                            result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
-                            self.0[i].0.std140().into(),
-                        );
-                    }
-                    Array(result.assume_init(), PhantomData)
-                }
-            }
-        }
-
-        unsafe impl<T> Std140 for Array<T, [Element<T>; $size]> where T: Std140 {}
-    };
+    }
 }
 
-impl_array!(0);
-impl_array!(1);
-impl_array!(2);
-impl_array!(3);
-impl_array!(4);
-impl_array!(5);
-impl_array!(6);
-impl_array!(7);
-impl_array!(8);
-impl_array!(9);
-impl_array!(10);
-impl_array!(11);
-impl_array!(12);
-impl_array!(13);
-impl_array!(14);
-impl_array!(15);
-impl_array!(16);
-impl_array!(17);
-impl_array!(18);
-impl_array!(19);
-impl_array!(20);
-impl_array!(21);
-impl_array!(22);
-impl_array!(23);
-impl_array!(24);
-impl_array!(25);
-impl_array!(26);
-impl_array!(27);
-impl_array!(28);
-impl_array!(29);
-impl_array!(30);
-impl_array!(31);
-impl_array!(32);
+impl<T, U, const N: usize> From<[T; N]> for Array<U, [U; N]>
+where
+    T: Into<U>,
+{
+    fn from(values: [T; N]) -> Self {
+        Array(MapArray::map_array(values, T::into), PhantomData)
+    }
+}
+
+impl<T, U, const N: usize> From<[T; N]> for Array<U, [Element<U>; N]>
+where
+    T: Into<U>,
+    U: Uniform,
+{
+    fn from(values: [T; N]) -> Self {
+        let values: [U; N] = MapArray::map_array(values, T::into);
+        Array(MapArray::map_array(values, U::into), PhantomData)
+    }
+}
+
+impl<T, const N: usize> Uniform for [T; N]
+where
+    T: Uniform,
+{
+    type Align = Align16;
+    type Std140 = Array<T::Std140, [Element<T::Std140>; N]>;
+
+    fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; N]> {
+        use std::ptr::write;
+        unsafe {
+            // All elements of `result` is written.
+            let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; N]> =
+                ::std::mem::MaybeUninit::zeroed();
+            for i in 0..N {
+                write(
+                    result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
+                    self[i].std140().into(),
+                );
+            }
+            Array(result.assume_init(), PhantomData)
+        }
+    }
+}
+
+impl<T, const N: usize> Uniform for Array<T, [Element<T>; N]>
+where
+    T: Uniform,
+{
+    type Align = Align16;
+    type Std140 = Array<T::Std140, [Element<T::Std140>; N]>;
+
+    fn std140(&self) -> Array<T::Std140, [Element<T::Std140>; N]> {
+        use std::ptr::write;
+        unsafe {
+            // All elements of `result` is written.
+            let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; N]> =
+                ::std::mem::MaybeUninit::zeroed();
+            for i in 0..N {
+                write(
+                    result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
+                    self.0[i].0.std140().into(),
+                );
+            }
+            Array(result.assume_init(), PhantomData)
+        }
+    }
+}
+
+unsafe impl<T, const N: usize> Std140 for Array<T, [Element<T>; N]> where T: Std140 {}
+
+#[test]
+fn test_array() {
+    use crate::{mat4, vec2, vec3};
+
+    let _ = [vec2::default(), vec2::default()].std140();
+    let _ = [
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+        vec3::default(),
+    ]
+    .std140();
+
+    let _ = [
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+        mat4::default(),
+    ]
+    .std140();
+}
