@@ -1,5 +1,6 @@
 use crate::mat::{dmat2, dmat3, dmat4, imat2, imat3, imat4, mat2, mat3, mat4, umat2, umat3, umat4};
 use crate::scalar::{double, float, int, uint};
+use crate::uniform::Uniform;
 use crate::vec::{dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4, vec2, vec3, vec4};
 use nalgebra::{Matrix2, Matrix3, Matrix4, Vector2, Vector3, Vector4};
 
@@ -11,6 +12,15 @@ macro_rules! impl_vec_from_nalgebra {
                 array.into()
             }
         }
+
+        impl Uniform for $nalgebra<$type> {
+            type Align = <$vec as Uniform>::Align;
+            type Std140 = $vec;
+
+            fn std140(&self) -> Self::Std140 {
+                Self::Std140::from(*self)
+            }
+        }
     };
 }
 
@@ -20,6 +30,16 @@ macro_rules! impl_mat_from_nalgebra {
             fn from(value: $nalgebra<$type>) -> Self {
                 let array: [[$type; $size]; $size] = value.into();
                 array.into()
+            }
+        }
+
+        impl Uniform for $nalgebra<$type> {
+            type Align = <$mat as Uniform>::Align;
+            type Std140 = $mat;
+
+            fn std140(&self) -> Self::Std140 {
+                let array: [[$type; $size]; $size] = (*self).into();
+                Self::Std140::from(array)
             }
         }
     };
@@ -53,9 +73,17 @@ impl_mat_from_nalgebra!(dmat4 : Matrix4 => [double; 4]);
 
 #[test]
 fn test_nalgebra() {
-    use crate::mat::mat2;
-    use crate::vec::dvec3;
+    use crate::uniform::Std140;
 
-    let _: dvec3 = Vector3::new(1.0, 2.0, 3.0).into();
-    let _: mat2 = Matrix2::zeros().into();
+    let v3: vec3 = [1.0f32, 2.0, 3.0].into();
+    let gv3_to_v3: vec3 = Vector3::new(1.0f32, 2.0, 3.0).into();
+    let gv3 = Vector3::new(1.0f32, 2.0, 3.0);
+    assert_eq!(v3.std140().as_raw(), gv3.std140().as_raw());
+    assert_eq!(gv3.std140().as_raw(), gv3_to_v3.std140().as_raw());
+
+    let m3: mat3 = [[1.0f32, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]].into();
+    let gm3_to_m3: mat3 = Matrix3::<f32>::identity().into();
+    let gm3 = Matrix3::<f32>::identity();
+    assert_eq!(m3.std140().as_raw(), gm3.std140().as_raw());
+    assert_eq!(gm3.std140().as_raw(), gm3_to_m3.std140().as_raw());
 }

@@ -13,7 +13,7 @@ bigger-arrays = []
 
 [dependencies]
 cgmath = { version = "0.18", optional = true }
-nalgebra = { version = "0.24", optional = true }
+nalgebra = { version = "0.31", optional = true }
 glam = { version = "0.21", optional = true }
 glsl-layout-derive = { path = "glsl-layout-derive", version = "0.4.0" }
 
