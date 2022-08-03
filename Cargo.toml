@@ -1,6 +1,6 @@
 [package]
 name = "glsl-layout"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Zakarum <zakarumych@ya.ru>"]
 description = "Provides data types and traits to build structures ready to upload into UBO."
 license = "MIT/Apache-2.0"
