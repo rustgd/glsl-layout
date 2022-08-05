@@ -39,7 +39,7 @@ macro_rules! impl_mat_from_glam {
             type Align = <$mat as Uniform>::Align;
             type Std140 = $mat;
 
-            fn std140(&self) ->Self::Std140 {
+            fn std140(&self) -> Self::Std140 {
                 Self::Std140::from(self.to_cols_array_2d())
             }
         }
