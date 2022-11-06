@@ -6,7 +6,7 @@ description = "Provides data types and traits to build structures ready to uploa
 license = "MIT/Apache-2.0"
 repository = "https://github.com/rustgd/glsl-layout"
 keywords = ["graphics", "glsl", "gamedev"]
-edition = "2018"
+edition = "2021"
 
 [features]
 bigger-arrays = []
