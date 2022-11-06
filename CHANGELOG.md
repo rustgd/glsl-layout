@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.3] - 2022-11-NN
+### Changed 
+- Updates `glam` version from `0.21` to `0.22`.
+
 ## [0.4.2] - 2022-08-06
 ### Changed
 - Used const generics to allow any array size.
