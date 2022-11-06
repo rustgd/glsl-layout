@@ -181,14 +181,11 @@ where
         // Use `ManuallyDrop<_>` to guard against panic safety issue.
         // Upon panic in `f`, `values` isn't dropped
         // and thus item copied by `read()` is dropped only once.
-        let mut values = ManuallyDrop::new(values);
+        let values = ManuallyDrop::new(values);
         unsafe {
             let mut result: MaybeUninit<[U; N]> = MaybeUninit::zeroed();
             for i in 0..N {
-                write(
-                    result.as_mut_ptr().cast::<U>().add(i),
-                    f(read(&mut values[i])),
-                );
+                write(result.as_mut_ptr().cast::<U>().add(i), f(read(&values[i])));
             }
             result.assume_init()
         }
@@ -228,10 +225,10 @@ where
             // All elements of `result` is written.
             let mut result: ::std::mem::MaybeUninit<[Element<T::Std140>; N]> =
                 ::std::mem::MaybeUninit::zeroed();
-            for i in 0..N {
+            for (i, item) in self.iter().enumerate().take(N) {
                 write(
                     result.as_mut_ptr().cast::<Element<T::Std140>>().add(i),
-                    self[i].std140().into(),
+                    item.std140().into(),
                 );
             }
             Array(result.assume_init(), PhantomData)

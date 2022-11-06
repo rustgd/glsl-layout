@@ -1,3 +1,5 @@
+/// # Safety
+///
 /// Special marker trait implemented only for `std140` types.
 pub unsafe trait Std140: Sized + Uniform<Std140 = Self> {
     /// Convert to bytes-slice.

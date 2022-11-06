@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file.
 
 ## [0.4.3] - 2022-11-NN
 ### Changed 
-- Updates `glam` version from `0.21` to `0.22`.
+- Update `glam` version from `0.21` to `0.22`.
+- Update rust edition from `2018` to `2021`.
 
 ## [0.4.2] - 2022-08-06
 ### Changed
