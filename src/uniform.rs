@@ -1,4 +1,7 @@
 /// Special marker trait implemented only for `std140` types.
+///
+/// # Safety
+/// The type must not have any padding bytes
 pub unsafe trait Std140: Sized + Uniform<Std140 = Self> {
     /// Convert to bytes-slice.
     fn as_raw(&self) -> &[u8] {

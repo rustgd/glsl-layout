@@ -36,11 +36,7 @@ impl From<bool> for boolean {
 
 impl From<boolean> for bool {
     fn from(value: boolean) -> Self {
-        if value.0 == 0 {
-            false
-        } else {
-            true
-        }
+        value.0 != 0
     }
 }
 

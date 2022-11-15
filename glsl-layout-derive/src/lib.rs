@@ -132,12 +132,8 @@ fn std140_type_for(aligned: &syn::Type) -> syn::TypePath {
                 "glsl_layout",
                 Span::call_site(),
             )))
-            .chain(once(
-                syn::Ident::new("Uniform".into(), Span::call_site()).into(),
-            ))
-            .chain(once(
-                syn::Ident::new("Std140".into(), Span::call_site()).into(),
-            ))
+            .chain(once(syn::Ident::new("Uniform", Span::call_site()).into()))
+            .chain(once(syn::Ident::new("Std140", Span::call_site()).into()))
             .collect(),
         },
     }
