@@ -101,9 +101,9 @@ pub use vec::*;
 
 #[allow(unused_imports)]
 #[macro_use]
-extern crate glsl_layout_derive;
+extern crate glsl_layout_derive2;
 #[doc(hidden)]
-pub use glsl_layout_derive::*;
+pub use glsl_layout_derive2::*;
 
 #[test]
 fn test_derive() {

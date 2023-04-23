@@ -83,6 +83,7 @@ fn aligned_field(field: &syn::Field) -> (syn::Field, syn::Field) {
         attrs: Vec::new(),
         vis: syn::Visibility::Inherited,
         colon_token: Some(Default::default()),
+        mutability: syn::FieldMutability::None,
     };
 
     let std140 = syn::Field {

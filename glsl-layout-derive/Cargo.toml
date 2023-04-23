@@ -1,16 +1,16 @@
 [package]
-name = "glsl-layout-derive"
+name = "glsl-layout-derive2"
 version = "0.4.0"
 authors = ["Zakarum <zakarumych@ya.ru>"]
 description = "Custom derive for `glsl-layout` crate."
 license = "MIT/Apache-2.0"
-repository = "https://github.com/rustgd/glsl-layout"
+repository = "https://github.com/nazariglez/glsl-layout2"
 keywords = ["graphics", "glsl", "gamedev"]
 
 [lib]
 proc-macro = true
 
 [dependencies]
-syn = { version = "1.0", features = ["full"] }
-quote = "1.0"
-proc-macro2 = "1.0.1"
+syn = { version = "2.0.15", features = ["full"] }
+quote = "1.0.26"
+proc-macro2 = "1.0.56"
