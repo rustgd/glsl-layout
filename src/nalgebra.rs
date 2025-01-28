@@ -15,7 +15,7 @@ macro_rules! impl_vec_from_nalgebra {
 
         impl Uniform for $nalgebra<$type> {
             type Align = <$vec as Uniform>::Align;
-            type Std140 = $vec;
+            type Std140 = <$vec as Uniform>::Std140;
 
             fn std140(&self) -> Self::Std140 {
                 Self::Std140::from(*self)
@@ -35,7 +35,7 @@ macro_rules! impl_mat_from_nalgebra {
 
         impl Uniform for $nalgebra<$type> {
             type Align = <$mat as Uniform>::Align;
-            type Std140 = $mat;
+            type Std140 = <$mat as Uniform>::Std140;
 
             fn std140(&self) -> Self::Std140 {
                 let array: [[$type; $size]; $size] = (*self).into();
@@ -78,12 +78,12 @@ fn test_nalgebra() {
     let v3: vec3 = [1.0f32, 2.0, 3.0].into();
     let gv3_to_v3: vec3 = Vector3::new(1.0f32, 2.0, 3.0).into();
     let gv3 = Vector3::new(1.0f32, 2.0, 3.0);
-    assert_eq!(v3.std140().as_raw(), gv3.std140().as_raw());
-    assert_eq!(gv3.std140().as_raw(), gv3_to_v3.std140().as_raw());
+    assert_eq!(v3.std140(), gv3.std140());
+    assert_eq!(gv3.std140(), gv3_to_v3.std140());
 
     let m3: mat3 = [[1.0f32, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]].into();
     let gm3_to_m3: mat3 = Matrix3::<f32>::identity().into();
     let gm3 = Matrix3::<f32>::identity();
-    assert_eq!(m3.std140().as_raw(), gm3.std140().as_raw());
-    assert_eq!(gm3.std140().as_raw(), gm3_to_m3.std140().as_raw());
+    assert_eq!(m3.std140(), gm3.std140());
+    assert_eq!(gm3.std140(), gm3_to_m3.std140());
 }

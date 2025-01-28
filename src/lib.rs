@@ -7,23 +7,8 @@
 //! # Examples
 //!
 //! ```rust
-//! # macro_rules! offset_of {
-//! #     ($type:ty: $($name:ident).+) => {
-//! #         unsafe { // No dereferencing
-//! #             let value: &$type = &*::std::ptr::null();
-//! #             let offset = &value $(.$name)+ as *const _ as usize;
-//! #             let base = value as *const _ as usize;
-//! #             offset - base
-//! #         }
-//! #     }
-//! # }
-//! #
-//! # #[macro_use]
-//! # extern crate glsl_layout;
-//! # use glsl_layout::*;
-//! # fn main() {
-//! #     use std::mem::size_of;
-//! #
+//! # use glsl_layout::{Uniform, int, mat4x4, vec3, float};
+//! 
 //! #[derive(Debug, Default, Clone, Copy, Uniform)]
 //! struct Foo {
 //!     x: int,
@@ -37,23 +22,23 @@
 //! type UFoo = <Foo as Uniform>::Std140;
 //!
 //! assert_eq!(
-//!     offset_of!(UFoo: y),
+//!     std::mem::offset_of!(UFoo, y),
 //!     round_up_to(size_of::<int>(), 16), // `vec3` has alignment of size `vec4`
 //!     "Offset of field `y` must be equal of size of `x` rounded up to the alignment",
 //! );
 //!
 //! assert_eq!(
-//!     offset_of!(UFoo: z),
-//!     round_up_to(offset_of!(UFoo: y) + size_of::<vec3>(), 4),
+//!     std::mem::offset_of!(UFoo, z),
+//!     round_up_to(std::mem::offset_of!(UFoo, y) + size_of::<vec3>(), 4),
 //!     "Field `z` must follow `y`. `y` should not have padding at the end",
 //! );
 //!
 //! assert_eq!(
-//!     offset_of!(UFoo: b),
-//!     offset_of!(UFoo: a) + size_of::<[[f32; 4]; 3]>(),
+//!     std::mem::offset_of!(UFoo, b),
+//!     std::mem::offset_of!(UFoo, a) + size_of::<[[f32; 4]; 3]>(),
 //!     "Field `b` must follow `a`. But `a` has padding at the end.",
 //! );
-//! #
+//! 
 //! let foo_uniform = Foo {
 //!     x: 2,
 //!     y: [0.0; 3].into(),
@@ -62,7 +47,6 @@
 //!     a: [0.0; 3].into(),
 //!     b: 0.0,
 //! }.std140();
-//! # }
 //!
 //! # fn round_up_to(offset: usize, align: usize) -> usize {
 //! #     if offset % align == 0 {
